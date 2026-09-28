@@ -168,13 +168,13 @@ const menuCategories = await getMenuCategories();
           ></textarea>
         </div>
 
-        <!-- Payment Notice -->
+        <!-- Payment Notice for customer -->
         <div class="payment-disclaimer">
-          <span>💳</span>
-          <p>
-            <strong>Pay in person on pickup</strong><br />
-            We accept Cash (BZD &amp; USD), Visa, and MasterCard at our counter in San Narciso.
-          </p>
+          <span class="pay-notice-icon">💳</span>
+          <div class="pay-notice-body">
+            <strong>Payment upon Pickup or Delivery</strong>
+            <p>Payment is handled when you collect your food. We accept <strong>Cash (BZD &amp; USD)</strong>, <strong>Card Payment</strong>, <strong>Bank Transfer</strong>, or <strong>DigiWallet</strong> at the counter.</p>
+          </div>
         </div>
 
         <!-- Order Calculations -->
@@ -220,6 +220,10 @@ const menuCategories = await getMenuCategories();
         <div class="conf-row">
           <span>Estimated Pickup:</span>
           <strong id="conf-time" style="color:#f5c97a;">In 25 mins</strong>
+        </div>
+        <div class="conf-row">
+          <span>Payment Source:</span>
+          <strong id="conf-payment" style="color:#f5c97a;">💵 Cash on Pickup</strong>
         </div>
         <div class="conf-row">
           <span>Total to Pay:</span>
@@ -721,17 +725,34 @@ const menuCategories = await getMenuCategories();
     border-color: #bc3c2d;
   }
 
+  /* Payment Disclaimer Notice */
   .payment-disclaimer {
     background: #24211f;
     border: 1px solid #383431;
-    border-radius: 6px;
-    padding: 12px 14px;
+    border-radius: 8px;
+    padding: 13px 15px;
     display: flex;
     gap: 12px;
     align-items: flex-start;
-    margin: 20px 0;
-    font-size: 0.78rem;
+    margin: 18px 0;
+    line-height: 1.45;
+  }
+  .pay-notice-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .pay-notice-body strong {
+    display: block;
+    color: #f4eee4;
+    font-family: "Playfair Display", serif;
+    font-size: 0.92rem;
+    margin-bottom: 3px;
+  }
+  .pay-notice-body p {
     color: #aaa197;
+    font-size: 0.75rem;
+    margin: 0;
     line-height: 1.4;
   }
 
@@ -1166,6 +1187,7 @@ const menuCategories = await getMenuCategories();
             customer_name,
             customer_phone,
             pickup_time,
+            payment_method: 'pay_on_pickup',
             notes,
             items: cart,
           }),
@@ -1183,6 +1205,9 @@ const menuCategories = await getMenuCategories();
           document.getElementById('conf-name').innerText = data.order.customer_name;
           document.getElementById('conf-time').innerText = data.order.pickup_time;
           document.getElementById('conf-total').innerText = `$${Number(data.order.total).toFixed(2)} BZD`;
+
+          const confPay = document.getElementById('conf-payment');
+          if (confPay) confPay.innerText = 'Pay upon Pickup / Delivery';
 
           const waBtn = document.getElementById('conf-wa-btn');
           if (waBtn) waBtn.setAttribute('href', data.whatsapp_url);

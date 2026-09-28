@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import pg from 'pg';
 import { menuCategories as defaultMenuCategories, type MenuCategory, type MenuItem } from '../data/menu';
 
@@ -370,7 +371,7 @@ export interface DbOrder {
   customer_phone?: string;
   pickup_time?: string;
   status: 'open' | 'completed' | 'cancelled';
-  payment_method: 'cash_bzd' | 'cash_usd' | 'card' | 'pay_on_pickup' | 'unpaid';
+  payment_method: 'cash' | 'card' | 'cardpayment' | 'transfer' | 'digiwallet' | 'cash_bzd' | 'cash_usd' | 'pay_on_pickup' | 'unpaid' | string;
   subtotal: number;
   tax: number;
   tip: number;
@@ -425,7 +426,22 @@ export async function createOrder(order: Omit<DbOrder, 'id' | 'order_number' | '
 
   const client = await getPool().connect();
   try {
+    // Auto-migrate orders table if columns were created prior to pickup updates
+    await client.query(`
+      ALTER TABLE IF EXISTS "sal_limonResturant".orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(30) DEFAULT 'pickup';
+      ALTER TABLE IF EXISTS "sal_limonResturant".orders ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(50);
+      ALTER TABLE IF EXISTS "sal_limonResturant".orders ADD COLUMN IF NOT EXISTS pickup_time VARCHAR(50);
+      ALTER TABLE IF EXISTS "sal_limonResturant".orders DROP CONSTRAINT IF EXISTS orders_payment_method_check;
+      ALTER TABLE IF EXISTS orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(30) DEFAULT 'pickup';
+      ALTER TABLE IF EXISTS orders ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(50);
+      ALTER TABLE IF EXISTS orders ADD COLUMN IF NOT EXISTS pickup_time VARCHAR(50);
+      ALTER TABLE IF EXISTS orders DROP CONSTRAINT IF EXISTS orders_payment_method_check;
+    `).catch(() => {});
+
     await client.query('BEGIN');
+
+    // Save the customer's chosen payment method (cash, card, transfer, digiwallet)
+    const paymentMethod = order.payment_method || 'cash';
 
     const orderRes = await client.query(
       `INSERT INTO orders (order_type, table_number, customer_name, customer_phone, pickup_time, status, payment_method, subtotal, tax, tip, total, amount_paid, change_given, notes)
@@ -438,7 +454,7 @@ export async function createOrder(order: Omit<DbOrder, 'id' | 'order_number' | '
         order.customer_phone || null,
         order.pickup_time || null,
         order.status || 'open',
-        order.payment_method || 'pay_on_pickup',
+        paymentMethod,
         order.subtotal,
         order.tax,
         order.tip,
@@ -489,6 +505,7 @@ export async function getRecentOrders(limit = 30): Promise<DbOrder[]> {
       );
       orders.push({
         ...row,
+        created_at: row.created_at instanceof Date ? row.created_at.toISOString() : (row.created_at ? String(row.created_at) : new Date().toISOString()),
         subtotal: parseFloat(row.subtotal),
         tax: parseFloat(row.tax),
         tip: parseFloat(row.tip),
@@ -508,23 +525,129 @@ export async function getRecentOrders(limit = 30): Promise<DbOrder[]> {
   }
 }
 
-export async function getTodaySales(): Promise<{ totalRevenue: number; orderCount: number; cashBzd: number; cashUsd: number; card: number }> {
+export async function getFilteredOrdersHistory(options: {
+  startDate?: string;
+  endDate?: string;
+  paymentMethod?: string;
+  status?: string;
+  limit?: number;
+}): Promise<DbOrder[]> {
+  const dbAvailable = await checkDbConnection();
+  if (!dbAvailable) {
+    let list = [...memoryOrders];
+    if (options.status && options.status !== 'all') {
+      list = list.filter(o => o.status === options.status);
+    }
+    if (options.paymentMethod && options.paymentMethod !== 'all') {
+      list = list.filter(o => o.payment_method === options.paymentMethod);
+    }
+    return list;
+  }
+
+  try {
+    const conditions: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (options.startDate) {
+      conditions.push(`created_at >= $${paramIndex++}::timestamp`);
+      params.push(`${options.startDate} 00:00:00`);
+    }
+
+    if (options.endDate) {
+      conditions.push(`created_at <= $${paramIndex++}::timestamp`);
+      params.push(`${options.endDate} 23:59:59`);
+    }
+
+    if (options.paymentMethod && options.paymentMethod !== 'all') {
+      conditions.push(`payment_method = $${paramIndex++}`);
+      params.push(options.paymentMethod);
+    }
+
+    if (options.status && options.status !== 'all') {
+      conditions.push(`status = $${paramIndex++}`);
+      params.push(options.status);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const limitClause = `LIMIT $${paramIndex++}`;
+    params.push(options.limit || 300);
+
+    const ordersRes = await getPool().query(
+      `SELECT * FROM orders ${whereClause} ORDER BY created_at DESC ${limitClause}`,
+      params
+    );
+
+    const orders: DbOrder[] = [];
+    for (const row of ordersRes.rows) {
+      const itemsRes = await getPool().query(
+        `SELECT * FROM order_items WHERE order_id = $1`,
+        [row.id]
+      );
+      orders.push({
+        ...row,
+        created_at: row.created_at instanceof Date ? row.created_at.toISOString() : (row.created_at ? String(row.created_at) : new Date().toISOString()),
+        subtotal: parseFloat(row.subtotal),
+        tax: parseFloat(row.tax),
+        tip: parseFloat(row.tip),
+        total: parseFloat(row.total),
+        amount_paid: parseFloat(row.amount_paid || 0),
+        change_given: parseFloat(row.change_given || 0),
+        items: itemsRes.rows.map((i: any) => ({
+          ...i,
+          unit_price: parseFloat(i.unit_price),
+          subtotal: parseFloat(i.subtotal),
+        })),
+      });
+    }
+    return orders;
+  } catch (err: any) {
+    console.error('Error fetching filtered orders:', err.message);
+    return [];
+  }
+}
+
+export async function getTodaySales(): Promise<{
+  totalRevenue: number;
+  orderCount: number;
+  cashBzd: number;
+  cashUsd: number;
+  card: number;
+  transfer: number;
+  digiwallet: number;
+}> {
   const orders = await getRecentOrders(100);
   const todayStr = new Date().toISOString().split('T')[0];
 
-  const todayOrders = orders.filter(o => o.created_at?.startsWith(todayStr) || true); // fallback to all recent if test
+  const todayOrders = orders.filter(o => {
+    if (!o.created_at) return true;
+    const dateStr = (o.created_at as any) instanceof Date ? (o.created_at as any).toISOString() : String(o.created_at);
+    return dateStr.startsWith(todayStr);
+  });
 
   let totalRevenue = 0;
   let cashBzd = 0;
   let cashUsd = 0;
   let card = 0;
+  let transfer = 0;
+  let digiwallet = 0;
 
   todayOrders.forEach(o => {
     if (o.status !== 'cancelled') {
-      totalRevenue += Number(o.total) || 0;
-      if (o.payment_method === 'cash_bzd') cashBzd += Number(o.total) || 0;
-      else if (o.payment_method === 'cash_usd') cashUsd += Number(o.total) || 0;
-      else if (o.payment_method === 'card') card += Number(o.total) || 0;
+      const orderTotal = Number(o.total) || 0;
+      totalRevenue += orderTotal;
+      if (o.payment_method === 'cash_usd') {
+        cashUsd += orderTotal;
+      } else if (o.payment_method === 'card' || o.payment_method === 'cardpayment') {
+        card += orderTotal;
+      } else if (o.payment_method === 'transfer') {
+        transfer += orderTotal;
+      } else if (o.payment_method === 'digiwallet') {
+        digiwallet += orderTotal;
+      } else {
+        // default cash / cash_bzd
+        cashBzd += orderTotal;
+      }
     }
   });
 
@@ -534,6 +657,124 @@ export async function getTodaySales(): Promise<{ totalRevenue: number; orderCoun
     cashBzd,
     cashUsd,
     card,
+    transfer,
+    digiwallet,
   };
 }
+
+export async function updateOrderStatus(
+  orderId: string,
+  status: 'open' | 'completed' | 'cancelled',
+  paymentMethod?: string
+): Promise<boolean> {
+  const dbAvailable = await checkDbConnection();
+  if (!dbAvailable) {
+    const mem = memoryOrders.find(
+      o => o.id === orderId || String(o.order_number) === String(orderId)
+    );
+    if (mem) {
+      mem.status = status;
+      if (paymentMethod) {
+        mem.payment_method = paymentMethod;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  try {
+    let res;
+    if (paymentMethod) {
+      res = await getPool().query(
+        `UPDATE orders SET status = $1, payment_method = $2 WHERE id::text = $3 OR order_number::text = $3`,
+        [status, paymentMethod, orderId]
+      );
+    } else {
+      res = await getPool().query(
+        `UPDATE orders SET status = $1 WHERE id::text = $2 OR order_number::text = $2`,
+        [status, orderId]
+      );
+    }
+    return (res.rowCount ?? 0) > 0;
+  } catch (err: any) {
+    console.error('Failed to update order status:', err.message);
+    return false;
+  }
+}
+
+export interface DailySalesData {
+  date: string;
+  label: string;
+  dayName: string;
+  itemsSold: number;
+  orderCount: number;
+  revenue: number;
+}
+
+export async function getDailySalesHistory(days = 7): Promise<DailySalesData[]> {
+  const dbAvailable = await checkDbConnection();
+  const salesMap = new Map<string, { itemsSold: number; orderCount: number; revenue: number }>();
+
+  if (dbAvailable) {
+    try {
+      const res = await getPool().query(`
+        SELECT 
+          DATE(o.created_at)::text as date,
+          COALESCE(SUM(oi.quantity), 0)::int as "itemsSold",
+          COUNT(DISTINCT o.id)::int as "orderCount",
+          COALESCE(SUM(o.total), 0)::float as revenue
+        FROM orders o
+        LEFT JOIN order_items oi ON oi.order_id = o.id
+        WHERE o.status != 'cancelled'
+        GROUP BY DATE(o.created_at)
+        ORDER BY DATE(o.created_at) ASC
+      `);
+
+      for (const r of res.rows) {
+        salesMap.set(r.date, {
+          itemsSold: parseInt(r.itemsSold, 10) || 0,
+          orderCount: parseInt(r.orderCount, 10) || 0,
+          revenue: parseFloat(r.revenue) || 0,
+        });
+      }
+    } catch (err: any) {
+      console.warn('Failed to query daily sales from DB:', err.message);
+    }
+  } else {
+    for (const ord of memoryOrders) {
+      if (ord.status === 'cancelled') continue;
+      const dStr = ord.created_at ? ord.created_at.split('T')[0] : new Date().toISOString().split('T')[0];
+      const itemsCount = (ord.items || []).reduce((sum, i) => sum + (i.quantity || 1), 0);
+      const existing = salesMap.get(dStr) || { itemsSold: 0, orderCount: 0, revenue: 0 };
+      existing.itemsSold += itemsCount;
+      existing.orderCount += 1;
+      existing.revenue += Number(ord.total) || 0;
+      salesMap.set(dStr, existing);
+    }
+  }
+
+  const result: DailySalesData[] = [];
+  const now = new Date();
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(now.getDate() - i);
+    const dateKey = d.toISOString().split('T')[0];
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    const stats = salesMap.get(dateKey) || { itemsSold: 0, orderCount: 0, revenue: 0 };
+    result.push({
+      date: dateKey,
+      label,
+      dayName,
+      itemsSold: stats.itemsSold,
+      orderCount: stats.orderCount,
+      revenue: stats.revenue,
+    });
+  }
+
+  return result;
+}
+
 

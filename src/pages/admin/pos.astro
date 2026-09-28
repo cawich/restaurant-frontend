@@ -407,7 +407,7 @@ const allItems = categories.flatMap(cat =>
       }
       .pay-methods {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
         gap: 6px;
         margin-bottom: 12px;
       }
@@ -645,6 +645,8 @@ const allItems = categories.flatMap(cat =>
             <button class="method-btn active" data-method="cash_bzd" onclick="setPaymentMethod('cash_bzd', this)">Cash BZD</button>
             <button class="method-btn" data-method="cash_usd" onclick="setPaymentMethod('cash_usd', this)">Cash USD</button>
             <button class="method-btn" data-method="card" onclick="setPaymentMethod('card', this)">Card</button>
+            <button class="method-btn" data-method="transfer" onclick="setPaymentMethod('transfer', this)">Transfer</button>
+            <button class="method-btn" data-method="digiwallet" onclick="setPaymentMethod('digiwallet', this)">DigiWallet</button>
           </div>
           <button class="btn-charge" id="charge-btn" onclick="submitOrder()" disabled>
             Charge $0.00 BZD

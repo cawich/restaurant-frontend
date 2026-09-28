@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS orders (
     customer_phone VARCHAR(50),
     pickup_time VARCHAR(50),                   -- e.g. '12:30 PM' or 'In 30 mins'
     status VARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'completed', 'cancelled')),
-    payment_method VARCHAR(30) DEFAULT 'pay_on_pickup' CHECK (payment_method IN ('cash_bzd', 'cash_usd', 'card', 'pay_on_pickup', 'unpaid')),
+    payment_method VARCHAR(30) DEFAULT 'unpaid' CHECK (payment_method IN ('cash', 'card', 'cardpayment', 'transfer', 'digiwallet', 'cash_bzd', 'cash_usd', 'pay_on_pickup', 'unpaid')),
     subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     tax DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     tip DECIMAL(10,2) NOT NULL DEFAULT 0.00,

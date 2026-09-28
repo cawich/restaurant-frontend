@@ -9,6 +9,7 @@ export const POST: APIRoute = async ({ request }) => {
       customer_name,
       customer_phone,
       pickup_time,
+      payment_method,
       items,
       notes,
     } = body;
@@ -52,6 +53,9 @@ export const POST: APIRoute = async ({ request }) => {
     const tax = subtotal * 0.125; // 12.5% Belize GST
     const total = subtotal + tax;
 
+    // Payment is pending until collected in person
+    const normalizedPaymentMethod = payment_method ? String(payment_method).trim().toLowerCase() : 'pay_on_pickup';
+
     // Save order flagged as pickup
     const newOrder = await createOrder({
       order_type: 'pickup',
@@ -60,7 +64,7 @@ export const POST: APIRoute = async ({ request }) => {
       customer_phone: customer_phone.trim(),
       pickup_time: pickup_time.trim(),
       status: 'open',
-      payment_method: 'pay_on_pickup',
+      payment_method: normalizedPaymentMethod,
       subtotal,
       tax,
       tip: 0,
