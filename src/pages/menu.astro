@@ -1,0 +1,408 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { menuCategories } from '../data/menu';
+---
+<Layout
+  title="Menu | Sal y Limón"
+  description="Browse the full Sal y Limón menu — tacos, ceviches, desayunos, crafted cocktails, and handmade Mexican specials."
+  activePage="menu"
+>
+  <main>
+    <!-- PAGE HERO -->
+    <section class="menu-hero">
+      <div class="menu-hero-inner">
+        <p class="eyebrow"><span></span> Nuestra Carta</p>
+        <h1>Eat well.<br /><em>Drink better.</em></h1>
+        <p class="menu-hero-sub">
+          Fresh ceviches cured with Persian lime, slow-braised meats, handmade tortillas, and artisanal agave spirits.
+        </p>
+        <div class="menu-hero-actions">
+          <a class="button button-dark" href="#menu-grid">Browse Categories <span aria-hidden="true">↓</span></a>
+          <button class="text-link print-btn" onclick="window.print()" type="button">
+            Print Menu <span aria-hidden="true">🖨️</span>
+          </button>
+        </div>
+      </div>
+      <div class="menu-hero-img">
+        <img src="/restaurant-interior.jpg" alt="Inside Sal y Limón Mexican Bistro" />
+      </div>
+    </section>
+
+    <!-- STICKY CATEGORY NAV & LEGEND -->
+    <nav class="menu-category-nav" id="menu-grid" aria-label="Menu categories filter">
+      <div class="category-nav-inner">
+        <div class="category-pills">
+          <button class="cat-pill active" data-target="all" type="button">All Categories</button>
+          {menuCategories.map(cat => (
+            <button class="cat-pill" data-target={cat.id} type="button">
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </nav>
+
+    <!-- DIETARY LEGEND -->
+    <div class="dietary-legend" aria-label="Dietary guidance">
+      <span class="legend-title">Dietary Guidance:</span>
+      <span class="legend-tag tag-gf"><strong>GF</strong> Gluten-Free</span>
+      <span class="legend-tag tag-v"><strong>V</strong> Vegetarian</span>
+      <span class="legend-tag tag-spicy"><strong>🌶️</strong> Mild Spice</span>
+      <span class="legend-tag tag-fav"><strong>★</strong> House Specialty</span>
+    </div>
+
+    <!-- MENU GRID -->
+    <section class="menu-full-grid" aria-label="Full food and beverage menu">
+      {menuCategories.map((category, ci) => (
+        <div class="menu-cat-block" id={category.id} data-category={category.id}>
+          <div class="cat-heading">
+            <span class="cat-num">{String(ci + 1).padStart(2, '0')}</span>
+            <div class="cat-heading-text">
+              <h2 class="cat-name">{category.name}</h2>
+              {category.description && (
+                <p class="cat-desc">{category.description}</p>
+              )}
+            </div>
+          </div>
+          <ul class="cat-items">
+            {category.items.map(item => (
+              <li class="cat-item">
+                <div class="cat-item-info">
+                  <div class="item-title-row">
+                    <strong>{item.name}</strong>
+                    {item.badge && (
+                      <span class="item-badge">{item.badge}</span>
+                    )}
+                    {item.tag && (
+                      <span class={`item-dietary-pill tag-${item.tag.toLowerCase()}`}>{item.tag}</span>
+                    )}
+                  </div>
+                  <p>{item.detail}</p>
+                </div>
+                <span class="cat-item-price">{item.price}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+
+    <!-- MENU FOOTNOTE / ALLERGEN NOTICE -->
+    <section class="menu-footnote">
+      <div class="footnote-card">
+        <div class="footnote-item">
+          <strong>Handmade Fresh Daily</strong>
+          <p>Tortillas are hand-pressed to order and salsas are prepared in small batches each morning.</p>
+        </div>
+        <div class="footnote-item">
+          <strong>Food Allergies &amp; Dietary Needs</strong>
+          <p>Please notify your server of any allergies. Vegetarian &amp; gluten-friendly options available across all sections.</p>
+        </div>
+        <div class="footnote-item">
+          <strong>Large Parties &amp; Events</strong>
+          <p>We accommodate group dining, birthdays, and celebrations. Call or message us on WhatsApp in advance.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  // Category Pill Filter / Quick Jump
+  const pills = document.querySelectorAll<HTMLButtonElement>('.cat-pill');
+  const catBlocks = document.querySelectorAll<HTMLElement>('.menu-cat-block');
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      const target = pill.getAttribute('data-target');
+
+      if (target === 'all') {
+        catBlocks.forEach(b => (b.style.display = 'block'));
+      } else {
+        catBlocks.forEach(b => {
+          if (b.getAttribute('data-category') === target) {
+            b.style.display = 'block';
+            b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            b.style.display = 'none';
+          }
+        });
+      }
+    });
+  });
+</script>
+
+<style>
+  /* ── MENU HERO ── */
+  .menu-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 480px;
+    border-bottom: 1px solid #dcd3c5;
+  }
+  .menu-hero-inner {
+    align-self: center;
+    padding: 80px 5vw 80px max(5vw, calc((100vw - 1320px) / 2));
+  }
+  .menu-hero-inner h1 {
+    font-size: clamp(3rem, 5.5vw, 5.5rem);
+    margin: 12px 0 0;
+  }
+  .menu-hero-sub {
+    color: #69645d;
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: 20px 0 28px;
+    max-width: 440px;
+  }
+  .menu-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .print-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.72rem;
+  }
+  .menu-hero-img { overflow: hidden; }
+  .menu-hero-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.92) contrast(1.05);
+  }
+
+  /* ── STICKY CATEGORY NAV ── */
+  .menu-category-nav {
+    position: sticky;
+    top: 0;
+    background: rgba(244, 238, 228, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #cfc5b9;
+    z-index: 100;
+    padding: 12px 5vw;
+  }
+  .category-nav-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .category-nav-inner::-webkit-scrollbar { display: none; }
+  .category-pills {
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+    min-width: max-content;
+  }
+  .cat-pill {
+    background: #ede6dc;
+    border: 1px solid transparent;
+    color: #69645d;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .cat-pill:hover {
+    background: #e2d9cd;
+    color: #242220;
+  }
+  .cat-pill.active {
+    background: #bc3c2d;
+    color: #ffffff;
+    border-color: #bc3c2d;
+  }
+
+  /* ── DIETARY LEGEND ── */
+  .dietary-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    max-width: 1320px;
+    margin: 28px auto 0;
+    padding: 12px 5vw;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    color: #797166;
+    letter-spacing: 0.04em;
+  }
+  .legend-title { font-weight: 500; text-transform: uppercase; color: #242220; }
+  .legend-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ede6dc;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .legend-tag strong { color: #bc3c2d; }
+
+  /* ── MENU GRID ── */
+  .menu-full-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 40px 5vw 80px;
+  }
+  .menu-cat-block {
+    padding: 45px 40px 45px 0;
+    border-bottom: 1px solid #cfc5b9;
+    scroll-margin-top: 70px;
+  }
+  .menu-cat-block:nth-child(even) {
+    padding-left: 48px;
+    border-left: 1px solid #cfc5b9;
+  }
+  .cat-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #bc3c2d;
+  }
+  .cat-num {
+    font-family: "DM Mono", monospace;
+    font-size: 0.72rem;
+    color: #bc3c2d;
+    letter-spacing: 0.1em;
+    padding-top: 2px;
+  }
+  .cat-name {
+    font-family: "Playfair Display", serif;
+    font-size: 1.65rem;
+    font-weight: 600;
+    color: #242220;
+    margin: 0 0 6px;
+  }
+  .cat-desc {
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.8rem;
+    color: #8b8379;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .cat-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid #ede6dc;
+    transition: background 0.2s ease;
+  }
+  .item-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+  .cat-item-info strong {
+    font-family: "Playfair Display", serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #242220;
+  }
+  .item-badge {
+    background: #faebe8;
+    color: #bc3c2d;
+    border: 1px solid rgba(188, 60, 45, 0.25);
+    font-family: "DM Mono", monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    text-transform: uppercase;
+  }
+  .item-dietary-pill {
+    background: #ede6dc;
+    color: #69645d;
+    font-family: "DM Mono", monospace;
+    font-size: 0.55rem;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+  .cat-item-info p {
+    color: #797166;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .cat-item-price {
+    font-family: "DM Mono", monospace;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #bc3c2d;
+    white-space: nowrap;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── MENU FOOTNOTE ── */
+  .menu-footnote {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 5vw 80px;
+  }
+  .footnote-card {
+    background: #ede6dc;
+    border: 1px solid #d8cec0;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    padding: 40px;
+  }
+  .footnote-item strong {
+    display: block;
+    font-family: "Playfair Display", serif;
+    font-size: 1.05rem;
+    color: #242220;
+    margin-bottom: 8px;
+  }
+  .footnote-item p {
+    color: #69645d;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── RESPONSIVE & PRINT ── */
+  @media (max-width: 850px) {
+    .menu-hero { grid-template-columns: 1fr; }
+    .menu-hero-img { height: 280px; }
+    .menu-full-grid { grid-template-columns: 1fr; padding: 30px 7vw 60px; }
+    .menu-cat-block { padding: 32px 0; }
+    .menu-cat-block:nth-child(even) { padding-left: 0; border-left: none; }
+    .footnote-card { grid-template-columns: 1fr; gap: 24px; padding: 28px 24px; }
+  }
+
+  @media print {
+    .menu-hero, .menu-category-nav, .dietary-legend, .menu-footnote { display: none !important; }
+    .menu-full-grid { padding: 0 !important; width: 100% !important; }
+  }
+</style>

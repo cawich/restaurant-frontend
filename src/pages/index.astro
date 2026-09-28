@@ -1,687 +1,832 @@
 ---
-const menuCategories = [
-	{
-		name: "Desayunos",
-		items: [
-			{ name: "Huevos con chaya", detail: "eggs, sauteed greens, beans, tortillas", price: "$12" },
-			{ name: "Huevos rancheros", detail: "eggs, ranchera salsa, beans, avocado", price: "$13" },
-			{ name: "Omelette", detail: "mushrooms, spinach, cheese, house salad", price: "$14" },
-			{ name: "Waffle sandwich", detail: "waffle, bacon, egg, maple", price: "$13" },
-		],
-	},
-	{
-		name: "Tacos",
-		items: [
-			{ name: "Tacos de birria", detail: "slow-braised beef, onion, cilantro, consomme", price: "$18" },
-			{ name: "Tacos al pastor", detail: "marinated pork, pineapple, onion, cilantro", price: "$16" },
-			{ name: "Tacos de camarón", detail: "shrimp, cabbage, crema, pico de gallo", price: "$17" },
-			{ name: "Quesabirria", detail: "melted cheese, birria, onion, cilantro", price: "$16" },
-		],
-	},
-	{
-		name: "Ceviches",
-		items: [
-			{ name: "Ceviche clásico", detail: "fresh catch, lime, onion, cilantro", price: "$17" },
-			{ name: "Ceviche de camarón", detail: "shrimp, tomato, cucumber, avocado", price: "$18" },
-			{ name: "Aguachile verde", detail: "shrimp, serrano, cucumber, lime", price: "$19" },
-		],
-	},
-	{
-		name: "Para compartir",
-		items: [
-			{ name: "Guacamole", detail: "avocado, pico de gallo, totopos", price: "$11" },
-			{ name: "Nachos", detail: "beans, cheese, jalapeño, crema, salsa", price: "$15" },
-			{ name: "Mariscos", detail: "fresh seafood, citrus, avocado, tostadas", price: "$20" },
-		],
-	},
-	{
-		name: "Postres & bebidas",
-		items: [
-			{ name: "Tres leches", detail: "house cake, whipped cream, seasonal fruit", price: "$9" },
-			{ name: "Churros", detail: "cinnamon sugar, chocolate dipping sauce", price: "$8" },
-			{ name: "Margarita clásica", detail: "tequila, lime, agave, salt", price: "$12" },
-			{ name: "Agua fresca", detail: "seasonal fruit, lime, a little sweetness", price: "$6" },
-		],
-	},
-];
+import Layout from '../layouts/Layout.astro';
+import { menuCategories } from '../data/menu';
 ---
+<Layout title="Sal y Limón | Mexican kitchen & bar" activePage="home">
+  <main>
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta
-			name="description"
-			content="Sal y Limón is a bright Mexican kitchen serving generous food, cold drinks, and good times."
-		/>
-		<meta name="generator" content={Astro.generator} />
-		<title>Sal y Limón | Mexican kitchen & bar</title>
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link
-			rel="preconnect"
-			href="https://fonts.gstatic.com"
-			crossorigin="anonymous"
-		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap"
-			rel="stylesheet"
-		/>
-	</head>
-	<body>
-		<header class="site-header">
-			<a class="wordmark" href="/" aria-label="Sal y Limón home"
-				><img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" /></a
-			>
-			<nav aria-label="Main navigation">
-				<a href="#full-menu">Menu</a>
-				<a href="#story">Our story</a>
-				<a href="#visit">Visit</a>
-			</nav>
-			<a class="header-booking" href="tel:+5016362275"
-				>Book a table <span aria-hidden="true">↗</span></a
-			>
-		</header>
+    <!-- ── HERO ── -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> Mexican kitchen &amp; bar</p>
+        <h1 id="hero-title">Bright food.<br /><em>Good times.</em></h1>
+        <p class="hero-intro">
+          Sal y Limón brings the color, flavor, and easygoing spirit of
+          Mexico to the table. Come hungry. Stay a while.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-dark" href="#reserve">
+            Reserve a table <span aria-hidden="true">↗</span>
+          </a>
+          <button class="text-link hero-menu-btn" id="hero-open-menu-btn" aria-haspopup="dialog">
+            Explore the menu <span aria-hidden="true">↓</span>
+          </button>
+        </div>
+      </div>
+      <div class="hero-image-wrap">
+        <img class="hero-image" src="/restaurant-interior.jpg" alt="Warmly lit tables inside Sal y Limón restaurant" />
+        <div class="image-note">
+          <span>01</span><span>Hecho con amor<br />since 2014</span>
+        </div>
+      </div>
+    </section>
 
-		<main>
-			<section class="hero" aria-labelledby="hero-title">
-				<div class="hero-copy">
-					<p class="eyebrow">
-						<span></span> Mexican kitchen & bar
-					</p>
-					<h1 id="hero-title">
-						Bright food.<br /><em>Good times.</em>
-					</h1>
-					<p class="hero-intro">
-						Sal y Limón brings the color, flavor, and easygoing spirit of
-						Mexico to the table. Come hungry. Stay a while.
-					</p>
-					<div class="hero-actions">
-						<a class="button button-dark" href="#reserve"
-							>Reserve a table <span aria-hidden="true">↗</span
-							></a
-						>
-						<a class="text-link" href="#menu"
-							>Explore the menu <span aria-hidden="true">↓</span
-							></a
-						>
-					</div>
-				</div>
-				<div class="hero-image-wrap">
-					<img
-						class="hero-image"
-						src="/restaurant-interior.jpg"
-						alt="Warmly lit tables inside Sal y Limón restaurant"
-					/>
-					<div class="image-note">
-						<span>01</span><span>Hecho con amor<br />since 2014</span>
-					</div>
-				</div>
-			</section>
+    <!-- ── MARQUEE ── -->
+    <section class="marquee" aria-label="Sal y Limón highlights">
+      <span>Hecho fresco</span><b>✳</b><span>Agave &amp; limón</span><b>✳</b>
+      <span>Long lunches</span><b>✳</b><span>Hecho fresco</span>
+    </section>
 
-			<section class="marquee" aria-label="Sal y Limón highlights">
-				<span>Hecho fresco</span><b>✳</b><span>Agave & limón</span><b
-					>✳</b
-				><span>Long lunches</span><b>✳</b><span>Hecho fresco</span>
-			</section>
+    <!-- ── DINING PILLARS ── -->
+    <section class="dining-pillars" aria-label="Restaurant core philosophy">
+      <div class="pillar-item">
+        <span class="pillar-icon">🌮</span>
+        <h3>Handmade Tortillas</h3>
+        <p>Corn masa pressed and griddled to order for every single taco and quesabirria.</p>
+      </div>
+      <div class="pillar-item">
+        <span class="pillar-icon">🍋</span>
+        <h3>Coastal Ceviches</h3>
+        <p>Wild Caribbean catch cured with Persian lime, crisp sea salt, and fresh herbs.</p>
+      </div>
+      <div class="pillar-item">
+        <span class="pillar-icon">🍹</span>
+        <h3>Agave &amp; Cocktails</h3>
+        <p>100% blue agave tequilas, artisanal mezcals, and chilled seasonal fruit aguas.</p>
+      </div>
+      <div class="pillar-item">
+        <span class="pillar-icon">🌴</span>
+        <h3>Tropical Bistro</h3>
+        <p>Breezy village dining in San Narciso, where friends linger and celebrate.</p>
+      </div>
+    </section>
 
-			<section class="full-menu" id="full-menu" aria-labelledby="full-menu-title">
-				<div class="full-menu-heading">
-					<p class="eyebrow"><span></span> Todo el menú</p>
-					<h2 id="full-menu-title">Eat<br /><em>well.</em></h2>
-				</div>
-				<div class="menu-categories">
-					{menuCategories.map((category) => (
-						<div class="menu-category">
-							<h3>{category.name}</h3>
-							{category.items.map((item) => (
-								<div class="category-item">
-									<div><strong>{item.name}</strong><p>{item.detail}</p></div>
-									<span>{item.price}</span>
-								</div>
-							))}
-						</div>
-					))}
-				</div>
-			</section>
+    <!-- ── MENU BOOK OVERLAY ── -->
+    <div class="menu-overlay" id="menu-overlay" role="dialog" aria-modal="true" aria-label="Menu book" hidden>
+      <div class="menu-overlay-bg" id="menu-overlay-bg"></div>
+      <div class="book-scene">
+        <div class="book" id="menu-book">
 
-			<section class="story-section" id="story">
-				<div class="story-image">
-					<img
-						src="/restaurant-sign.jpg"
-						alt="Sal y Limón restaurant sign"
-					/>
-				</div>
-				<div class="story-copy">
-					<p class="eyebrow"><span></span> De nuestra cocina</p><h2>
-						Come hungry.<br /><em>Leave happy.</em>
-					</h2><p>
-						We cook bright, generous Mexican food made for passing around
-						the table. Fresh salsas, slow-cooked favorites, and a little
-						something sweet at the end.
-					</p><a class="text-link" href="#visit"
-						>Encuéntranos <span aria-hidden="true">↗</span></a>
-				</div>
-			</section>
+          <!-- COVER -->
+          <div class="book-page book-cover" id="book-cover">
+            <div class="page-front cover-front">
+              <div class="cover-spine"></div>
+              <div class="cover-inner">
+                <div class="cover-logo-wrap">
+                  <img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" class="cover-logo" />
+                </div>
+                <p class="cover-eyebrow">✳ Todo el menú ✳</p>
+                <h2 class="cover-title">Sal y<br /><em>Limón</em></h2>
+                <p class="cover-subtitle">Mexican kitchen &amp; bar — est. 2014</p>
+                <button class="cover-open-btn" id="cover-open-btn">Open menu <span>→</span></button>
+              </div>
+              <div class="cover-decoration">
+                <div class="deco-circle deco-1"></div>
+                <div class="deco-circle deco-2"></div>
+              </div>
+            </div>
+            <div class="page-back cover-back"></div>
+          </div>
 
-			<section class="reserve" id="reserve">
-				<p class="eyebrow"><span></span> Tu mesa te espera</p>
-				<h2>Make a night<br /><em>of it.</em></h2>
-				<a
-					class="button button-light"
-					href="tel:+5016362275"
-					>Book a table <span aria-hidden="true">↗</span></a
-				>
-			</section>
-		</main>
+          <!-- CATEGORY PAGES -->
+          {menuCategories.map((category, i) => (
+            <div class={`book-page cat-page cat-page-${i}`} data-page={i + 1}>
+              <div class="page-front">
+                <div class="page-inner">
+                  <div class="page-header">
+                    <span class="page-num">{String(i + 1).padStart(2, '0')}</span>
+                    <h3 class="page-category">{category.name}</h3>
+                  </div>
+                  <ul class="page-items">
+                    {category.items.map((item) => (
+                      <li class="page-item">
+                        <div class="item-info">
+                          <strong>{item.name}</strong>
+                          <p>{item.detail}</p>
+                        </div>
+                        <span class="item-price">{item.price}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div class="page-footer-nav">
+                    {i > 0 && <button class="pager pager-prev" data-dir="-1">← Prev</button>}
+                    {i < menuCategories.length - 1 && <button class="pager pager-next" data-dir="1">Next →</button>}
+                  </div>
+                </div>
+              </div>
+              <div class="page-back">
+                <div class="page-inner page-inner-back">
+                  <div class="back-watermark">✳</div>
+                </div>
+              </div>
+            </div>
+          ))}
 
-		<footer id="visit">
-			<div class="footer-brand">
-				<a class="wordmark" href="/"><img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" /></a><p>
-					Mexican bistro & day club
-				</p>
-			</div>
-			<div>
-				<p class="footer-label">Find us</p><p>
-					Philip Goldson Highway<br />
-					7th block, San Narciso Village<br />
-					In front of Escuela Secundaria Técnica Mexico High School
-				</p>
-			</div>
-			<div>
-				<p class="footer-label">Reservations</p><p>
-					<a href="tel:+5016362275">+501 636-2275</a><br />
-					Reservations recommended
-				</p>
-			</div>
-			<div>
-				<p class="footer-label">Follow along</p><p>
-					<a href="#instagram">Instagram ↗</a><br />
-					<a href="tel:+5016362275">Call to reserve ↗</a>
-				</p>
-			</div>
-		</footer>
-	</body>
-</html>
+          <!-- BACK COVER -->
+          <div class="book-page book-back-cover">
+            <div class="page-front back-cover-front">
+              <div class="back-cover-inner">
+                <p class="back-cover-text">Hecho con amor</p>
+                <p class="back-cover-sub">since 2014</p>
+                <a href="tel:+5016362275" class="back-cover-cta">Reserve a table ↗</a>
+              </div>
+            </div>
+            <div class="page-back back-cover-back"></div>
+          </div>
+
+        </div><!-- /book -->
+
+        <!-- Click zones -->
+        <button class="book-zone book-zone-prev" id="zone-prev" aria-label="Previous page">
+          <span class="zone-arrow zone-arrow-left">&#8592;</span>
+        </button>
+        <button class="book-zone book-zone-next" id="zone-next" aria-label="Next page">
+          <span class="zone-arrow zone-arrow-right">&#8594;</span>
+        </button>
+      </div><!-- /book-scene -->
+
+      <button class="menu-close-btn" id="menu-close-btn" aria-label="Close menu">
+        <span></span><span></span>
+      </button>
+      <p class="book-hint" id="book-hint">← tap sides to flip &nbsp;·&nbsp; esc to close →</p>
+      <div class="book-pagination" id="book-pagination" aria-hidden="true">
+        <span class="dot dot-active" data-page="0"></span>
+        {menuCategories.map((_, i) => (
+          <span class="dot" data-page={i + 1}></span>
+        ))}
+        <span class="dot" data-page={menuCategories.length + 1}></span>
+      </div>
+    </div>
+
+    <!-- ── STORY ── -->
+    <section class="story-section" id="story">
+      <div class="story-image">
+        <img src="/restaurant-sign.jpg" alt="Sal y Limón restaurant sign" />
+      </div>
+      <div class="story-copy">
+        <p class="eyebrow"><span></span> De nuestra cocina</p>
+        <h2>Come hungry.<br /><em>Leave happy.</em></h2>
+        <p>
+          We cook bright, generous Mexican food made for passing around
+          the table. Fresh salsas, slow-cooked favorites, and a little
+          something sweet at the end.
+        </p>
+        <a class="text-link" href="/menu">See the full menu <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <!-- ── REVIEWS & SOCIAL PROOF ── -->
+    <section class="reviews-section" id="reviews" aria-labelledby="reviews-title">
+      <div class="reviews-header">
+        <p class="eyebrow" style="justify-content:center"><span></span> Google Reviews</p>
+        <h2 id="reviews-title">Loved by locals.<br /><em>Remembered by travelers.</em></h2>
+        <div class="overall-rating-badge">
+          <svg class="google-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span class="stars">★★★★★</span>
+          <span class="rating-count">Verified Google Reviews</span>
+        </div>
+      </div>
+
+      <!-- Live Elfsight Google Reviews Widget Hook -->
+      <script src="https://static.elfsight.com/platform/platform.js" async></script>
+      <div class="elfsight-app-google-reviews" data-elfsight-app-lazy></div>
+
+      <!-- Direct Google Maps Review Card -->
+      <div class="google-live-card">
+        <div class="google-live-inner">
+          <div class="google-live-info">
+            <div class="google-branding">
+              <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <div>
+                <strong>Sal y Limón on Google Maps</strong>
+                <p>San Narciso Village, Corozal District, Belize</p>
+              </div>
+            </div>
+            <div class="google-stars-display">
+              <span class="stars-large">★★★★★</span>
+              <span class="stars-sub">Read genuine diner feedback &amp; browse visitor photos</span>
+            </div>
+          </div>
+          <div class="google-live-actions">
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=18.30349,-88.50894"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="button button-dark"
+              id="google-read-reviews-btn"
+            >
+              Read Reviews on Google Maps <span aria-hidden="true">↗</span>
+            </a>
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination=18.30349,-88.50894"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-link"
+            >
+              Get Directions &amp; Visit <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ATMOSPHERE / GALLERY ── -->
+    <section class="gallery-section" aria-label="Restaurant photo gallery">
+      <div class="gallery-header">
+        <div>
+          <p class="eyebrow"><span></span> Sabor &amp; Ambiente</p>
+          <h2>Follow the table</h2>
+        </div>
+        <a
+          href="https://www.instagram.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="instagram-handle-btn"
+        >
+          📷 @sal_y_limon_bz ↗
+        </a>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-card">
+          <img src="/restaurant-interior.jpg" alt="Warm bistro tables at Sal y Limón" />
+          <span class="gallery-label">Bistro Tables</span>
+        </div>
+        <div class="gallery-card">
+          <img src="/restaurant-sign.jpg" alt="Sal y Limón restaurant sign" />
+          <span class="gallery-label">San Narciso Village</span>
+        </div>
+        <div class="gallery-card">
+          <img src="/menu.jpg" alt="Signature dishes and drinks" />
+          <span class="gallery-label">Hecho Fresco</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</Layout>
 
 <style>
-	:global(*) {
-		box-sizing: border-box;
-	}
-	:global(html) {
-		scroll-behavior: smooth;
-	}
-	:global(body) {
-		margin: 0;
-		background: #f4eee4;
-		color: #242220;
-		font-family: "DM Sans", sans-serif;
-	}
-	:global(a) {
-		color: inherit;
-		text-decoration: none;
-	}
-	.site-header {
-		align-items: center;
-		display: flex;
-		justify-content: space-between;
-		max-width: 1320px;
-		margin: 0 auto;
-		padding: 28px 5vw;
-	}
-	.wordmark {
-		display: block;
-		font-family: "Playfair Display", serif;
-		font-size: 2rem;
-		letter-spacing: -0.04em;
-	}
-	.wordmark img {
-		border-radius: 999px;
-		display: block;
-		filter: saturate(0.92) contrast(0.9);
-		height: auto;
-		mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
-		mix-blend-mode: multiply;
-		max-width: 150px;
-		object-fit: contain;
-		opacity: 0.86;
-		transition: opacity 0.25s ease, filter 0.25s ease;
-	}
-	.wordmark:hover img {
-		filter: saturate(1) contrast(1);
-		opacity: 1;
-	}
-	.wordmark span {
-		font-family: "DM Mono", monospace;
-		font-size: 0.5rem;
-		letter-spacing: 0;
-		margin-left: 3px;
-		vertical-align: top;
-	}
-	nav {
-		display: flex;
-		gap: 34px;
-		margin-left: 8%;
-	}
-	nav a,
-	.header-booking,
-	.eyebrow,
-	.footer-label {
-		font-family: "DM Mono", monospace;
-		font-size: 0.67rem;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-	}
-	nav a {
-		color: #69645d;
-		transition: color 0.2s ease;
-	}
-	nav a:hover {
-		color: #bc3c2d;
-	}
-	.header-booking {
-		border-bottom: 1px solid #242220;
-		padding-bottom: 5px;
-	}
-	.header-booking span,
-	.button span {
-		margin-left: 9px;
-	}
-	.hero {
-		display: grid;
-		gap: 6vw;
-		grid-template-columns: 0.88fr 1.12fr;
-		margin: 52px auto 0;
-		max-width: 1320px;
-		padding: 0 5vw 105px;
-	}
-	.hero-copy {
-		align-self: center;
-		padding: 30px 0 60px;
-	}
-	.eyebrow {
-		align-items: center;
-		color: #bc3c2d;
-		display: flex;
-		gap: 10px;
-		margin: 0 0 28px;
-	}
-	.eyebrow span {
-		background: #bc3c2d;
-		display: inline-block;
-		height: 7px;
-		width: 7px;
-	}
-	h1,
-	h2 {
-		font-family: "Playfair Display", serif;
-		font-size: clamp(3.6rem, 6vw, 6.9rem);
-		font-weight: 500;
-		letter-spacing: -0.065em;
-		line-height: 0.91;
-		margin: 0;
-	}
-	h1 em,
-	h2 em {
-		color: #bc3c2d;
-		font-weight: 500;
-	}
-	.hero-intro {
-		color: #69645d;
-		font-size: 1.03rem;
-		line-height: 1.65;
-		margin: 35px 0 35px;
-		max-width: 340px;
-	}
-	.hero-actions {
-		align-items: center;
-		display: flex;
-		gap: 26px;
-	}
-	.button {
-		display: inline-flex;
-		align-items: center;
-		font-family: "DM Mono", monospace;
-		font-size: 0.68rem;
-		letter-spacing: 0.05em;
-		padding: 16px 18px;
-		text-transform: uppercase;
-	}
-	.button-dark {
-		background: #242220;
-		color: #f4eee4;
-	}
-	.button-light {
-		background: #f4eee4;
-		color: #242220;
-		margin-top: 34px;
-	}
-	.text-link {
-		border-bottom: 1px solid #aaa197;
-		font-family: "DM Mono", monospace;
-		font-size: 0.68rem;
-		letter-spacing: 0.04em;
-		padding-bottom: 5px;
-		text-transform: uppercase;
-	}
-	.text-link span {
-		color: #bc3c2d;
-		margin-left: 8px;
-	}
-	.hero-image-wrap {
-		min-height: 590px;
-		position: relative;
-	}
-	.hero-image {
-		height: 100%;
-		object-fit: cover;
-		width: 100%;
-	}
-	.image-note {
-		background: #f4eee4;
-		bottom: 0;
-		display: flex;
-		font-family: "DM Mono", monospace;
-		font-size: 0.61rem;
-		gap: 24px;
-		left: 0;
-		line-height: 1.45;
-		padding: 18px 20px;
-		position: absolute;
-		text-transform: uppercase;
-	}
-	.image-note span:first-child {
-		color: #bc3c2d;
-	}
-	.marquee {
-		align-items: center;
-		background: #bc3c2d;
-		color: #f4eee4;
-		display: flex;
-		gap: 35px;
-		justify-content: center;
-		overflow: hidden;
-		padding: 16px;
-		white-space: nowrap;
-	}
-	.marquee span {
-		font-family: "Playfair Display", serif;
-		font-size: 1.08rem;
-		font-style: italic;
-	}
-	.marquee b {
-		font-size: 1rem;
-		font-weight: 400;
-	}
-	.menu-section {
-		display: grid;
-		gap: 12vw;
-		grid-template-columns: 0.8fr 1.2fr;
-		margin: 0 auto;
-		max-width: 1150px;
-		padding: 145px 5vw 155px;
-	}
-	.menu-section h2,
-	.story-section h2,
-	.reserve h2 {
-		font-size: clamp(3.2rem, 5vw, 5.4rem);
-	}
-	.menu-list {
-		align-self: end;
-	}
-	.menu-item {
-		align-items: center;
-		border-top: 1px solid #cfc5b9;
-		display: grid;
-		gap: 25px;
-		grid-template-columns: 35px 1fr auto;
-		padding: 22px 0;
-	}
-	.menu-item:last-of-type {
-		border-bottom: 1px solid #cfc5b9;
-	}
-	.menu-number,
-	.menu-item p {
-		color: #8b8379;
-		font-family: "DM Mono", monospace;
-		font-size: 0.63rem;
-	}
-	.menu-item h3 {
-		font-family: "Playfair Display", serif;
-		font-size: 1.45rem;
-		font-weight: 500;
-		margin: 0 0 5px;
-	}
-	.menu-item p {
-		margin: 0;
-	}
-	.menu-item strong {
-		font-family: "DM Mono", monospace;
-		font-size: 0.75rem;
-		font-weight: 400;
-	}
-	.menu-list > .text-link {
-		display: inline-block;
-		margin-top: 31px;
-	}
-	.full-menu {
-		background: #242220;
-		color: #f4eee4;
-		display: grid;
-		gap: 10vw;
-		grid-template-columns: 0.7fr 1.3fr;
-		padding: 120px max(5vw, calc((100vw - 1150px) / 2));
-	}
-	.full-menu .eyebrow {
-		color: #e26750;
-	}
-	.full-menu .eyebrow span {
-		background: #e26750;
-	}
-	.full-menu h2 {
-		font-size: clamp(3.2rem, 5vw, 5.4rem);
-	}
-	.menu-image {
-		border: 1px solid #605a53;
-		display: block;
-		margin-top: 38px;
-		max-width: 230px;
-		padding: 7px;
-		width: 100%;
-	}
-	.menu-categories {
-		display: grid;
-		gap: 55px 45px;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-	.menu-category h3 {
-		border-bottom: 1px solid #605a53;
-		color: #e26750;
-		font-family: "DM Mono", monospace;
-		font-size: 0.7rem;
-		font-weight: 400;
-		letter-spacing: 0.08em;
-		margin: 0 0 8px;
-		padding-bottom: 10px;
-		text-transform: uppercase;
-	}
-	.category-item {
-		align-items: start;
-		border-bottom: 1px solid #393632;
-		display: flex;
-		gap: 15px;
-		justify-content: space-between;
-		padding: 13px 0;
-	}
-	.category-item strong {
-		font-family: "Playfair Display", serif;
-		font-size: 1.08rem;
-		font-weight: 500;
-	}
-	.category-item p {
-		color: #a9a096;
-		font-family: "DM Mono", monospace;
-		font-size: 0.58rem;
-		line-height: 1.45;
-		margin: 4px 0 0;
-	}
-	.category-item > span {
-		color: #e26750;
-		font-family: "DM Mono", monospace;
-		font-size: 0.65rem;
-		padding-top: 2px;
-		white-space: nowrap;
-	}
-	.story-section {
-		background: #ded7cc;
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-	}
-	.story-image {
-		height: 620px;
-	}
-	.story-image img {
-		height: 100%;
-		object-fit: cover;
-		width: 100%;
-	}
-	.story-copy {
-		align-self: center;
-		max-width: 480px;
-		padding: 70px 8vw;
-	}
-	.story-copy h2 {
-		margin-bottom: 30px;
-	}
-	.story-copy > p:not(.eyebrow) {
-		color: #69645d;
-		line-height: 1.7;
-		margin: 0 0 28px;
-		max-width: 330px;
-	}
-	.reserve {
-		background: #242220;
-		color: #f4eee4;
-		padding: 130px 5vw 140px;
-		text-align: center;
-	}
-	.reserve .eyebrow {
-		justify-content: center;
-	}
-	.reserve h2 {
-		font-size: clamp(4rem, 8vw, 8rem);
-	}
-	footer {
-		display: grid;
-		gap: 30px;
-		grid-template-columns: 2fr 1fr 1fr 1.3fr;
-		margin: 0 auto;
-		max-width: 1320px;
-		padding: 72px 5vw 80px;
-	}
-	footer p {
-		font-size: 0.8rem;
-		line-height: 1.7;
-		margin: 12px 0 0;
-	}
-	footer .footer-brand p,
-	.footer-label {
-		color: #8b8379;
-	}
-	.footer-label {
-		color: #bc3c2d;
-		margin: 0;
-	}
-	footer a:hover {
-		color: #bc3c2d;
-	}
-	@media (max-width: 700px) {
-		.site-header {
-			padding-top: 22px;
-		}
-		nav {
-			display: none;
-		}
-		.header-booking {
-			font-size: 0.58rem;
-		}
-		.hero {
-			display: flex;
-			flex-direction: column;
-			gap: 0;
-			margin-top: 32px;
-			padding-bottom: 55px;
-		}
-		.hero-copy {
-			padding-bottom: 48px;
-		}
-		h1 {
-			font-size: clamp(3.5rem, 17vw, 5.2rem);
-		}
-		.hero-image-wrap {
-			min-height: 420px;
-		}
-		.hero-actions {
-			align-items: flex-start;
-			flex-direction: column;
-			gap: 21px;
-		}
-		.marquee {
-			justify-content: flex-start;
-		}
-		.menu-section {
-			display: block;
-			padding: 90px 7vw;
-		}
-		.menu-list {
-			margin-top: 60px;
-		}
-		.full-menu {
-			display: block;
-			padding: 85px 7vw 95px;
-		}
-		.menu-image {
-			margin-top: 35px;
-			max-width: 260px;
-		}
-		.menu-categories {
-			gap: 42px;
-			grid-template-columns: 1fr;
-			margin-top: 60px;
-		}
-		.menu-item {
-			gap: 12px;
-			grid-template-columns: 24px 1fr auto;
-		}
-		.menu-item h3 {
-			font-size: 1.2rem;
-		}
-		.story-section {
-			display: flex;
-			flex-direction: column;
-		}
-		.story-image {
-			height: 360px;
-		}
-		.story-copy {
-			padding: 75px 8vw 90px;
-		}
-		.story-copy h2 {
-			font-size: 3.7rem;
-		}
-		.reserve {
-			padding: 90px 7vw 100px;
-		}
-		.reserve h2 {
-			font-size: 4.5rem;
-		}
-		footer {
-			grid-template-columns: 1fr 1fr;
-			padding: 55px 7vw 65px;
-		}
-		.footer-brand {
-			grid-column: span 2;
-			margin-bottom: 15px;
-		}
-	}
+  /* ── HERO ── */
+  .hero {
+    display: grid;
+    gap: 6vw;
+    grid-template-columns: 0.88fr 1.12fr;
+    margin: 52px auto 0;
+    max-width: 1320px;
+    padding: 0 5vw 105px;
+  }
+  .hero-copy { align-self: center; padding: 30px 0 60px; }
+  .hero-intro {
+    color: #69645d;
+    font-size: 1.03rem;
+    line-height: 1.65;
+    margin: 35px 0;
+    max-width: 340px;
+  }
+  .hero-actions { align-items: center; display: flex; gap: 26px; }
+  .hero-menu-btn { background: none; border: none; cursor: pointer; padding: 0; }
+  .hero-image-wrap { min-height: 590px; position: relative; }
+  .hero-image { height: 100%; object-fit: cover; width: 100%; }
+  .image-note {
+    background: #f4eee4;
+    bottom: 0; left: 0;
+    display: flex;
+    font-family: "DM Mono", monospace;
+    font-size: 0.61rem;
+    gap: 24px;
+    line-height: 1.45;
+    padding: 18px 20px;
+    position: absolute;
+    text-transform: uppercase;
+  }
+  .image-note span:first-child { color: #bc3c2d; }
+
+  /* ── STORY ── */
+  .story-section {
+    background: #ded7cc;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .story-image { height: 620px; }
+  .story-image img { height: 100%; object-fit: cover; width: 100%; }
+  .story-copy {
+    align-self: center;
+    max-width: 480px;
+    padding: 70px 8vw;
+  }
+  .story-copy h2 { font-size: clamp(3.2rem, 5vw, 5.4rem); margin-bottom: 30px; }
+  .story-copy > p:not(.eyebrow) {
+    color: #69645d;
+    line-height: 1.7;
+    margin: 0 0 28px;
+    max-width: 330px;
+  }
+
+  /* ── DINING PILLARS ── */
+  .dining-pillars {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 70px 5vw;
+    border-bottom: 1px solid #dcd3c5;
+  }
+  .pillar-item { text-align: left; }
+  .pillar-icon { font-size: 1.8rem; display: block; margin-bottom: 14px; }
+  .pillar-item h3 {
+    font-family: "Playfair Display", serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #242220;
+    margin: 0 0 8px;
+  }
+  .pillar-item p {
+    color: #69645d;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── REVIEWS & SOCIAL PROOF ── */
+  .reviews-section {
+    background: #ede6dc;
+    border-top: 1px solid #cfc5b9;
+    border-bottom: 1px solid #cfc5b9;
+    padding: 100px 5vw 110px;
+  }
+  .reviews-header {
+    text-align: center;
+    max-width: 650px;
+    margin: 0 auto 60px;
+  }
+  .reviews-header h2 {
+    font-size: clamp(2.4rem, 4.5vw, 4.2rem);
+    margin: 12px 0 18px;
+  }
+  .overall-rating-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f4eee4;
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid #dcd3c5;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: #554e44;
+  }
+  .overall-rating-badge .stars { color: #f5a623; letter-spacing: 2px; }
+  .overall-rating-badge .google-icon { flex-shrink: 0; }
+
+  /* ── GOOGLE LIVE REVIEWS CARD ── */
+  .elfsight-app-google-reviews {
+    max-width: 1320px;
+    margin: 0 auto 30px;
+  }
+  .google-live-card {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #f4eee4;
+    border: 1px solid #d4cbbe;
+    border-radius: 12px;
+    padding: 36px 40px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  }
+  .google-live-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 36px;
+    flex-wrap: wrap;
+  }
+  .google-branding {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .google-branding strong {
+    font-family: "Playfair Display", serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #242220;
+    display: block;
+  }
+  .google-branding p {
+    font-size: 0.8rem;
+    color: #69645d;
+    margin: 3px 0 0;
+  }
+  .google-stars-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stars-large {
+    color: #f5a623;
+    font-size: 1.2rem;
+    letter-spacing: 3px;
+  }
+  .stars-sub {
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    color: #797166;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .google-live-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  /* ── GALLERY SECTION ── */
+  .gallery-section {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 90px 5vw;
+  }
+  .gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+  }
+  .gallery-header h2 {
+    font-size: clamp(2.4rem, 4vw, 3.8rem);
+    margin: 8px 0 0;
+  }
+  .instagram-handle-btn {
+    border-bottom: 1px solid #242220;
+    font-family: "DM Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    padding-bottom: 4px;
+    text-transform: uppercase;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .instagram-handle-btn:hover {
+    color: #bc3c2d;
+    border-color: #bc3c2d;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .gallery-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    height: 380px;
+  }
+  .gallery-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .gallery-card:hover img { transform: scale(1.05); }
+  .gallery-label {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: rgba(36, 34, 32, 0.85);
+    backdrop-filter: blur(8px);
+    color: #f4eee4;
+    font-family: "DM Mono", monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 4px;
+  }
+
+  /* ── MENU OVERLAY ── */
+  .menu-overlay {
+    position: fixed; inset: 0; z-index: 900;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .menu-overlay[hidden] { display: none !important; }
+  .menu-overlay-bg {
+    position: absolute; inset: 0;
+    background: rgba(18,16,14,0.88);
+    backdrop-filter: blur(10px);
+    opacity: 0; transition: opacity 0.5s ease;
+  }
+  .menu-overlay.is-open .menu-overlay-bg { opacity: 1; }
+
+  /* ── BOOK ── */
+  .book-scene {
+    perspective: 1800px; position: relative; z-index: 1;
+    width: min(520px, 94vw); height: min(680px, 90vh);
+  }
+  .book { width: 100%; height: 100%; position: relative; }
+  .book-page {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transform-origin: left center;
+    transition: transform 0.75s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+    backface-visibility: hidden;
+    pointer-events: none; z-index: 1;
+  }
+  .book-page.is-flipped { transform: rotateY(-180deg); pointer-events: none; z-index: 2; }
+  .book-page.is-active  { pointer-events: all; z-index: 10; }
+  .page-front, .page-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 2px 8px 8px 2px; overflow: hidden;
+  }
+  .page-back { transform: rotateY(180deg); border-radius: 8px 2px 2px 8px; }
+
+  /* Cover */
+  .cover-front {
+    background: linear-gradient(145deg, #2a0a04 0%, #6b1b0f 45%, #bc3c2d 100%);
+    box-shadow: -4px 0 12px rgba(0,0,0,.4), 4px 0 24px rgba(0,0,0,.5), inset -3px 0 8px rgba(0,0,0,.3);
+    position: relative; color: #f4eee4;
+  }
+  .cover-back { background: #1a0a06; box-shadow: inset -6px 0 15px rgba(0,0,0,.4); }
+  .cover-spine {
+    position: absolute; top: 0; left: 0; bottom: 0; width: 32px;
+    background: linear-gradient(90deg, rgba(0,0,0,.45) 0%, rgba(255,255,255,.06) 60%, rgba(0,0,0,.2) 100%);
+  }
+  .cover-inner {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 44px 28px 60px; text-align: center; overflow-y: auto;
+  }
+  .cover-logo-wrap {
+    margin-bottom: 16px; position: relative;
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .cover-logo-wrap::before {
+    content: ''; position: absolute; inset: -5px; border-radius: 50%;
+    border: 1.5px solid rgba(245,201,122,.55);
+    animation: logo-ring-spin 18s linear infinite;
+  }
+  .cover-logo-wrap::after {
+    content: ''; position: absolute; inset: -12px; border-radius: 50%;
+    border: 1px dashed rgba(245,201,122,.22);
+  }
+  @keyframes logo-ring-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .cover-logo {
+    width: 90px; height: 90px; border-radius: 50%; object-fit: cover; display: block;
+    border: 3px solid rgba(245,201,122,.7);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.45), 0 0 40px rgba(245,201,122,.15);
+    filter: saturate(1.1) contrast(1.02);
+  }
+  .cover-eyebrow {
+    font-family: "DM Mono", monospace; font-size: 0.6rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: rgba(244,238,228,.6); margin: 0 0 14px;
+  }
+  .cover-title {
+    font-family: "Playfair Display", serif; font-size: clamp(2.6rem,8vw,3.8rem);
+    font-weight: 600; letter-spacing: -0.04em; line-height: 0.92; margin: 0 0 12px; color: #f4eee4;
+  }
+  .cover-title em { color: #f5c97a; font-style: italic; }
+  .cover-subtitle {
+    font-family: "DM Mono", monospace; font-size: 0.62rem; letter-spacing: 0.07em;
+    text-transform: uppercase; color: rgba(244,238,228,.55); margin: 0 0 22px;
+  }
+  .cover-open-btn {
+    background: #f5c97a; border: none; color: #242220; cursor: pointer;
+    font-family: "DM Mono", monospace; font-size: 0.68rem; letter-spacing: 0.07em;
+    padding: 13px 22px; text-transform: uppercase;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .cover-open-btn:hover { background: #f9d88a; transform: translateY(-2px); }
+  .cover-open-btn span { margin-left: 6px; }
+  .cover-decoration { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .deco-circle { position: absolute; border: 1px solid rgba(245,201,122,.15); border-radius: 50%; }
+  .deco-1 { width: 340px; height: 340px; top: -80px; right: -80px; }
+  .deco-2 { width: 200px; height: 200px; bottom: -40px; left: 20px; }
+
+  /* Inner pages */
+  .page-front:not(.cover-front):not(.back-cover-front) {
+    background: #fdfaf5; box-shadow: inset -3px 0 10px rgba(0,0,0,.08);
+  }
+  .page-back:not(.cover-back):not(.back-cover-back) {
+    background: #f7f3ec; box-shadow: inset 3px 0 10px rgba(0,0,0,.06);
+  }
+  .page-inner {
+    padding: 38px 40px 28px 50px; height: 100%;
+    display: flex; flex-direction: column; box-sizing: border-box;
+  }
+  .page-inner-back { align-items: center; justify-content: center; padding: 40px; }
+  .back-watermark { font-size: 5rem; color: rgba(188,60,45,.06); }
+  .page-header {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 22px; border-bottom: 1.5px solid #e8dfd4; padding-bottom: 16px;
+  }
+  .page-num { font-family: "DM Mono", monospace; font-size: 0.6rem; color: #bc3c2d; letter-spacing: 0.1em; }
+  .page-category {
+    font-family: "DM Mono", monospace; font-size: 0.72rem; font-weight: 400;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #242220; margin: 0;
+  }
+  .page-items { list-style: none; margin: 0; padding: 0; flex: 1; }
+  .page-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 14px; padding: 14px 0; border-bottom: 1px solid #ede6dc;
+  }
+  .item-info strong {
+    display: block; font-family: "Playfair Display", serif; font-size: 1.05rem;
+    font-weight: 500; color: #242220; margin-bottom: 3px;
+  }
+  .item-info p { color: #8b8379; font-family: "DM Mono", monospace; font-size: 0.58rem; line-height: 1.5; margin: 0; }
+  .item-price { font-family: "DM Mono", monospace; font-size: 0.7rem; color: #bc3c2d; white-space: nowrap; padding-top: 2px; flex-shrink: 0; }
+  .page-footer-nav { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 16px; }
+  .pager {
+    background: none; border: 1px solid #cfc5b9; cursor: pointer; color: #69645d;
+    font-family: "DM Mono", monospace; font-size: 0.6rem; letter-spacing: 0.06em;
+    padding: 7px 13px; text-transform: uppercase; transition: all 0.2s ease;
+  }
+  .pager:hover { background: #242220; color: #f4eee4; border-color: #242220; }
+  .pager-next { margin-left: auto; }
+
+  /* Back cover */
+  .back-cover-front { background: linear-gradient(145deg, #bc3c2d 0%, #6b1b0f 55%, #2a0a04 100%); color: #f4eee4; }
+  .back-cover-back  { background: #1a0a06; }
+  .back-cover-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+  .back-cover-text  { font-family: "Playfair Display", serif; font-size: clamp(2rem,6vw,2.8rem); font-style: italic; margin: 0 0 8px; color: #f4eee4; }
+  .back-cover-sub   { font-family: "DM Mono", monospace; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,238,228,.55); margin: 0 0 36px; }
+  .back-cover-cta   { background: #f5c97a; color: #242220; font-family: "DM Mono", monospace; font-size: 0.68rem; letter-spacing: 0.07em; padding: 13px 22px; text-transform: uppercase; transition: background 0.2s ease; text-decoration: none; }
+  .back-cover-cta:hover { background: #f9d88a; }
+
+  /* Close button */
+  .menu-close-btn {
+    position: fixed; top: 22px; right: 24px; z-index: 910;
+    width: 46px; height: 46px;
+    background: rgba(244,238,228,.1); border: 1px solid rgba(244,238,228,.22); border-radius: 50%;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    transition: background 0.2s ease;
+  }
+  .menu-close-btn:hover { background: rgba(244,238,228,.18); }
+  .menu-close-btn span { display: block; width: 20px; height: 1.5px; background: #f4eee4; }
+  .menu-close-btn span:first-child { transform: translateY(3.75px) rotate(45deg); }
+  .menu-close-btn span:last-child  { transform: translateY(-3.75px) rotate(-45deg); }
+
+  /* Zones */
+  .book-zone { position: absolute; top: 0; bottom: 0; width: 50%; background: none; border: none; cursor: pointer; z-index: 20; display: flex; align-items: center; padding: 0; }
+  .book-zone-prev { left: 0; justify-content: flex-start; }
+  .book-zone-next { right: 0; justify-content: flex-end; }
+  .book-zone.zone-hidden { opacity: 0; pointer-events: none; }
+  .zone-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+    color: rgba(255,255,255,.55); font-size: 1.2rem; opacity: 0;
+    transition: opacity 0.25s ease, background 0.2s ease, transform 0.2s ease;
+    margin: 0 16px; backdrop-filter: blur(4px);
+  }
+  .book-zone:hover .zone-arrow { opacity: 1; background: rgba(245,201,122,.18); border-color: rgba(245,201,122,.4); color: #f5c97a; transform: scale(1.1); }
+  @keyframes zone-pulse { 0%{opacity:0} 40%{opacity:.7} 70%{opacity:.7} 100%{opacity:0} }
+  .book-zone.zone-pulse .zone-arrow { animation: zone-pulse 2.2s ease forwards; }
+
+  /* Hint + Dots */
+  .book-hint {
+    position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); z-index: 910;
+    color: rgba(244,238,228,.4); font-family: "DM Mono", monospace; font-size: 0.58rem;
+    letter-spacing: 0.09em; text-transform: uppercase; margin: 0; white-space: nowrap;
+    pointer-events: none; transition: opacity 0.6s ease;
+  }
+  .book-hint.hint-faded { opacity: 0; }
+  .book-pagination {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 910;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(244,238,228,.3); cursor: pointer; transition: background 0.25s ease, transform 0.25s ease; }
+  .dot.dot-active { background: #f5c97a; transform: scale(1.35); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 850px) {
+    .hero { display: flex; flex-direction: column; gap: 0; margin-top: 32px; padding-bottom: 55px; }
+    .hero-copy { padding-bottom: 48px; }
+    .hero-image-wrap { min-height: 420px; }
+    .hero-actions { align-items: flex-start; flex-direction: column; gap: 21px; }
+    .dining-pillars { grid-template-columns: repeat(2, 1fr); padding: 50px 7vw; gap: 24px; }
+    .story-section { display: flex; flex-direction: column; }
+    .story-image { height: 360px; }
+    .story-copy { padding: 75px 8vw 90px; }
+    .story-copy h2 { font-size: 3.7rem; }
+    .google-live-card { padding: 28px 22px; }
+    .google-live-inner { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .google-live-actions { width: 100%; }
+    .google-live-actions .button { width: 100%; text-align: center; justify-content: center; }
+    .reviews-section { padding: 70px 7vw 80px; }
+    .gallery-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .gallery-grid { grid-template-columns: 1fr; }
+    .gallery-card { height: 260px; }
+  }
+
+  @media (max-width: 550px) {
+    .dining-pillars { grid-template-columns: 1fr; }
+  }
 </style>
+
+<script>
+(function () {
+  const pages = Array.from(document.querySelectorAll('.book-page'));
+  const totalPages = pages.length;
+  const overlay = document.getElementById('menu-overlay');
+  const dots = Array.from(document.querySelectorAll('.dot'));
+  const zonePrev = document.getElementById('zone-prev');
+  const zoneNext = document.getElementById('zone-next');
+  const hintEl   = document.getElementById('book-hint');
+  let currentPage = 0, hintTimer = null;
+
+  function openOverlay() {
+    overlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => overlay.classList.add('is-open'));
+    setActiveDot(0);
+    setTimeout(() => { pulseZones(); showHint(); }, 600);
+  }
+  window.openMenuOverlay = openOverlay; // expose for Layout nav
+
+  function closeOverlay() {
+    overlay.classList.remove('is-open');
+    overlay.addEventListener('transitionend', () => {
+      overlay.hidden = true;
+      document.body.style.overflow = '';
+      pages.forEach(p => p.classList.remove('is-flipped','is-active'));
+      pages[0].classList.add('is-active');
+      currentPage = 0; setActiveDot(0); updateZones();
+    }, { once: true });
+  }
+
+  function goTo(target) {
+    if (target < 0 || target >= totalPages) return;
+    if (target > currentPage) {
+      for (let i = currentPage; i < target; i++) pages[i].classList.add('is-flipped');
+    } else {
+      for (let i = currentPage - 1; i >= target; i--) pages[i].classList.remove('is-flipped');
+    }
+    pages.forEach(p => p.classList.remove('is-active'));
+    pages[target].classList.add('is-active');
+    currentPage = target; setActiveDot(target); updateZones();
+  }
+
+  function setActiveDot(idx) { dots.forEach((d,i) => d.classList.toggle('dot-active', i === idx)); }
+  function updateZones() {
+    zonePrev.classList.toggle('zone-hidden', currentPage === 0);
+    zoneNext.classList.toggle('zone-hidden', currentPage >= totalPages - 1);
+  }
+  function pulseZones() {
+    [zonePrev, zoneNext].forEach(z => {
+      z.classList.remove('zone-pulse'); void z.offsetWidth;
+      z.classList.add('zone-pulse');
+      z.addEventListener('animationend', () => z.classList.remove('zone-pulse'), { once: true });
+    });
+  }
+  function showHint() {
+    hintEl.classList.remove('hint-faded'); clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => hintEl.classList.add('hint-faded'), 4000);
+  }
+
+  // Bindings
+  ['open-menu-btn', 'hero-open-menu-btn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', openOverlay);
+  });
+  document.getElementById('menu-close-btn').addEventListener('click', closeOverlay);
+  document.getElementById('menu-overlay-bg').addEventListener('click', closeOverlay);
+  document.getElementById('cover-open-btn').addEventListener('click', () => goTo(1));
+  zonePrev.addEventListener('click', () => goTo(currentPage - 1));
+  zoneNext.addEventListener('click', () => goTo(currentPage + 1));
+  document.querySelectorAll('.pager').forEach(btn => {
+    btn.addEventListener('click', () => goTo(currentPage + parseInt(btn.dataset.dir, 10)));
+  });
+  dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+  document.addEventListener('keydown', e => {
+    if (overlay.hidden) return;
+    if (e.key === 'Escape') closeOverlay();
+    if (e.key === 'ArrowRight') goTo(currentPage + 1);
+    if (e.key === 'ArrowLeft')  goTo(currentPage - 1);
+  });
+
+  // Also intercept Layout nav "Menu" link
+  document.querySelectorAll('nav a').forEach(a => {
+    if (a.getAttribute('href') === '/menu') {
+      a.addEventListener('click', e => { e.preventDefault(); openOverlay(); });
+    }
+  });
+
+  pages[0].classList.add('is-active');
+  updateZones();
+})();
+</script>
