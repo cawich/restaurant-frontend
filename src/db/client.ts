@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import pg from 'pg';
+import bcrypt from 'bcryptjs';
 import { menuCategories as defaultMenuCategories, type MenuCategory, type MenuItem } from '../data/menu';
 
 const { Pool } = pg;
@@ -54,6 +55,29 @@ export interface DbMedia {
   category: 'gallery' | 'dish' | 'hero' | 'interior';
   created_at?: string;
 }
+
+export interface DbUser {
+  id: string;
+  username: string;
+  email: string;
+  role: 'admin' | 'manager' | 'staff';
+  password_hash?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// In-memory fallback users if database is temporarily offline
+let memoryUsers: DbUser[] = [
+  {
+    id: 'user-default-admin',
+    username: 'Admin',
+    email: (process.env.ADMIN_EMAIL || 'admin@salylimon.com').toLowerCase(),
+    role: 'admin',
+    password_hash: bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'admin1234', 10),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+];
 
 /**
  * Test DB Connection status
@@ -776,5 +800,285 @@ export async function getDailySalesHistory(days = 7): Promise<DailySalesData[]> 
 
   return result;
 }
+
+// ── USER MANAGEMENT & DATABASE AUTHENTICATION ──
+let usersTableChecked = false;
+
+/**
+ * Ensure users table exists in PostgreSQL and seed initial admin user if empty
+ */
+export async function ensureUsersTable(): Promise<void> {
+  if (usersTableChecked) return;
+  const dbAvailable = await checkDbConnection();
+  if (!dbAvailable) return;
+
+  try {
+    const client = await getPool().connect();
+    try {
+      await client.query(`
+        CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+        CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          username VARCHAR(100) NOT NULL,
+          email VARCHAR(150) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          role VARCHAR(30) DEFAULT 'admin',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Check if users exist in DB
+      const countRes = await client.query('SELECT COUNT(*)::int as count FROM users');
+      const count = countRes.rows[0]?.count || 0;
+
+      if (count === 0) {
+        const defaultEmail = (process.env.ADMIN_EMAIL || 'admin@salylimon.com').toLowerCase();
+        const defaultPassword = process.env.ADMIN_PASSWORD || 'admin1234';
+        const defaultHash = bcrypt.hashSync(defaultPassword, 10);
+
+        await client.query(
+          `INSERT INTO users (username, email, password_hash, role)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (email) DO NOTHING`,
+          ['Admin', defaultEmail, defaultHash, 'admin']
+        );
+        console.log('✅ [Users seeded]: Initial admin user initialized in PostgreSQL.');
+      }
+
+      usersTableChecked = true;
+    } finally {
+      client.release();
+    }
+  } catch (err: any) {
+    console.warn('⚠️ [ensureUsersTable warning]:', err.message);
+  }
+}
+
+/**
+ * Find user by email or username (case-insensitive) with password hash for login verification
+ */
+export async function getUserByEmail(identifier: string): Promise<DbUser | null> {
+  await ensureUsersTable();
+  const dbAvailable = await checkDbConnection();
+  const clean = identifier.trim().toLowerCase();
+
+  if (!dbAvailable) {
+    const user = memoryUsers.find(
+      u => u.email.toLowerCase() === clean || u.username.toLowerCase() === clean
+    );
+    return user || null;
+  }
+
+  try {
+    const res = await getPool().query(
+      `SELECT id, username, email, password_hash, role, 
+              created_at::text as created_at, updated_at::text as updated_at
+       FROM users 
+       WHERE LOWER(email) = $1 OR LOWER(username) = $1
+       LIMIT 1`,
+      [clean]
+    );
+
+    if (res.rows.length === 0) return null;
+    return res.rows[0];
+  } catch (err: any) {
+    console.warn('⚠️ [getUserByEmail fallback]:', err.message);
+    const user = memoryUsers.find(
+      u => u.email.toLowerCase() === clean || u.username.toLowerCase() === clean
+    );
+    return user || null;
+  }
+}
+
+/**
+ * Get all users for admin management (without password hashes)
+ */
+export async function getAllUsers(): Promise<Omit<DbUser, 'password_hash'>[]> {
+  await ensureUsersTable();
+  const dbAvailable = await checkDbConnection();
+
+  if (!dbAvailable) {
+    return memoryUsers.map(({ password_hash, ...u }) => u);
+  }
+
+  try {
+    const res = await getPool().query(`
+      SELECT id, username, email, role, 
+             created_at::text as created_at, updated_at::text as updated_at
+      FROM users 
+      ORDER BY created_at ASC
+    `);
+    return res.rows;
+  } catch (err: any) {
+    console.warn('⚠️ [getAllUsers fallback]:', err.message);
+    return memoryUsers.map(({ password_hash, ...u }) => u);
+  }
+}
+
+/**
+ * Add a new user into PostgreSQL database
+ */
+export async function createUser(data: {
+  username: string;
+  email: string;
+  password: string;
+  role?: 'admin' | 'manager' | 'staff';
+}): Promise<{ success: boolean; user?: Omit<DbUser, 'password_hash'>; error?: string }> {
+  await ensureUsersTable();
+
+  const username = data.username.trim();
+  const email = data.email.trim().toLowerCase();
+  const role = data.role || 'staff';
+
+  if (!username) return { success: false, error: 'Username is required' };
+  if (!email || !email.includes('@')) return { success: false, error: 'Valid email is required' };
+  if (!data.password || data.password.length < 6) {
+    return { success: false, error: 'Password must be at least 6 characters' };
+  }
+
+  // Hash password with bcrypt
+  const passwordHash = await bcrypt.hash(data.password, 10);
+  const dbAvailable = await checkDbConnection();
+
+  if (!dbAvailable) {
+    if (memoryUsers.some(u => u.email.toLowerCase() === email || u.username.toLowerCase() === username.toLowerCase())) {
+      return { success: false, error: 'A user with this email or username already exists' };
+    }
+    const newUser: DbUser = {
+      id: `usr-${Date.now()}`,
+      username,
+      email,
+      role,
+      password_hash: passwordHash,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    memoryUsers.push(newUser);
+    const { password_hash, ...safe } = newUser;
+    return { success: true, user: safe };
+  }
+
+  try {
+    // Check if email or username already registered
+    const existing = await getPool().query(
+      `SELECT id FROM users WHERE LOWER(email) = $1 OR LOWER(username) = $2 LIMIT 1`,
+      [email, username.toLowerCase()]
+    );
+    if (existing.rows.length > 0) {
+      return { success: false, error: 'A user with this email or username already exists' };
+    }
+
+    const res = await getPool().query(
+      `INSERT INTO users (username, email, password_hash, role)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, username, email, role, created_at::text as created_at, updated_at::text as updated_at`,
+      [username, email, passwordHash, role]
+    );
+
+    return { success: true, user: res.rows[0] };
+  } catch (err: any) {
+    console.error('Failed to create user in DB:', err.message);
+    return { success: false, error: err.message || 'Database error creating user' };
+  }
+}
+
+/**
+ * Delete a user from PostgreSQL database
+ */
+export async function deleteUser(id: string): Promise<{ success: boolean; error?: string }> {
+  await ensureUsersTable();
+  const dbAvailable = await checkDbConnection();
+
+  if (!dbAvailable) {
+    const idx = memoryUsers.findIndex(u => u.id === id);
+    if (idx === -1) return { success: false, error: 'User not found' };
+
+    const admins = memoryUsers.filter(u => u.role === 'admin');
+    if (admins.length <= 1 && memoryUsers[idx].role === 'admin') {
+      return { success: false, error: 'Cannot delete the last remaining administrator' };
+    }
+
+    memoryUsers.splice(idx, 1);
+    return { success: true };
+  }
+
+  try {
+    const userRes = await getPool().query('SELECT role FROM users WHERE id = $1', [id]);
+    if (userRes.rows.length === 0) return { success: false, error: 'User not found' };
+
+    if (userRes.rows[0].role === 'admin') {
+      const adminCountRes = await getPool().query(`SELECT COUNT(*)::int as count FROM users WHERE role = 'admin'`);
+      if ((adminCountRes.rows[0]?.count || 0) <= 1) {
+        return { success: false, error: 'Cannot delete the last remaining administrator account' };
+      }
+    }
+
+    await getPool().query('DELETE FROM users WHERE id = $1', [id]);
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to delete user:', err.message);
+    return { success: false, error: err.message || 'Database error deleting user' };
+  }
+}
+
+/**
+ * Update user details or password in PostgreSQL database
+ */
+export async function updateUser(
+  id: string,
+  updates: { username?: string; role?: 'admin' | 'manager' | 'staff'; password?: string }
+): Promise<{ success: boolean; error?: string }> {
+  await ensureUsersTable();
+  const dbAvailable = await checkDbConnection();
+
+  if (!dbAvailable) {
+    const user = memoryUsers.find(u => u.id === id);
+    if (!user) return { success: false, error: 'User not found' };
+    if (updates.username) user.username = updates.username.trim();
+    if (updates.role) user.role = updates.role;
+    if (updates.password && updates.password.length >= 6) {
+      user.password_hash = bcrypt.hashSync(updates.password, 10);
+    }
+    user.updated_at = new Date().toISOString();
+    return { success: true };
+  }
+
+  try {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (updates.username) {
+      fields.push(`username = $${idx++}`);
+      values.push(updates.username.trim());
+    }
+    if (updates.role) {
+      fields.push(`role = $${idx++}`);
+      values.push(updates.role);
+    }
+    if (updates.password && updates.password.length >= 6) {
+      const hash = await bcrypt.hash(updates.password, 10);
+      fields.push(`password_hash = $${idx++}`);
+      values.push(hash);
+    }
+
+    if (fields.length === 0) return { success: true };
+
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    await getPool().query(
+      `UPDATE users SET ${fields.join(', ')} WHERE id = $${idx}`,
+      values
+    );
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update user' };
+  }
+}
+
+
 
 

@@ -1,11 +1,12 @@
 ---
-import { isAuthenticated } from '../../lib/auth';
+import { isAuthenticated, getSessionUser } from '../../lib/auth';
 import { getMenuCategories, getSettings } from '../../db/client';
 
 if (!isAuthenticated(Astro.cookies)) {
   return Astro.redirect('/admin/login');
 }
 
+const currentUser = getSessionUser(Astro.cookies);
 const categories = await getMenuCategories();
 const settings = await getSettings();
 
@@ -568,6 +569,11 @@ const allItems = categories.flatMap(cat =>
       </div>
 
       <div class="pos-actions">
+        {currentUser && (
+          <span style="font-family:'DM Mono',monospace; font-size:0.65rem; color:#f5c97a; background:rgba(255,255,255,0.06); padding:6px 12px; border-radius:14px; border:1px solid #383431;">
+            👤 {currentUser.username} ({currentUser.role})
+          </span>
+        )}
         <a href="/admin" class="header-btn">← Admin Dashboard</a>
         <button class="header-btn" onclick="openSalesHistory()">Today's Sales</button>
       </div>

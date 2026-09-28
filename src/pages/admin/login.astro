@@ -162,13 +162,14 @@ if (isAuthenticated(Astro.cookies)) {
 
       <form id="login-form">
         <div class="form-group">
-          <label for="email">Admin Email</label>
+          <label for="email">Email or Username</label>
           <input
-            type="email"
+            type="text"
             id="email"
             name="email"
             required
-            autocomplete="email"
+            autocomplete="username"
+            placeholder="admin@salylimon.com or Username"
             value="admin@salylimon.com"
           />
         </div>
@@ -191,10 +192,9 @@ if (isAuthenticated(Astro.cookies)) {
       </form>
 
       <div class="hint-box">
-        <strong>Default Credentials:</strong><br />
-        Email: <code>admin@salylimon.com</code><br />
-        Password: <code>admin1234</code><br />
-        <em>(Configurable in <code>.env</code> file)</em>
+        <strong>Database Authentication Active:</strong><br />
+        Log in with your PostgreSQL database user account.<br />
+        Initial Admin: <code>admin@salylimon.com</code> / <code>admin1234</code>
       </div>
 
       <div class="login-footer">

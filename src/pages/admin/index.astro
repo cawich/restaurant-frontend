@@ -1,5 +1,5 @@
 ---
-import { isAuthenticated } from '../../lib/auth';
+import { isAuthenticated, getSessionUser } from '../../lib/auth';
 import {
   getAdminMenuItems,
   getMenuCategories,
@@ -9,12 +9,14 @@ import {
   getRecentOrders,
   getTodaySales,
   getDailySalesHistory,
+  getAllUsers,
 } from '../../db/client';
 
 if (!isAuthenticated(Astro.cookies)) {
   return Astro.redirect('/admin/login');
 }
 
+const currentUser = getSessionUser(Astro.cookies);
 const isDbOnline = await checkDbConnection();
 const menuItems = await getAdminMenuItems();
 const categories = await getMenuCategories();
@@ -23,6 +25,7 @@ const settings = await getSettings();
 const recentOrders = await getRecentOrders(150);
 const salesSummary = await getTodaySales();
 const dailySales = await getDailySalesHistory(7);
+const usersList = await getAllUsers();
 
 // Line Graph Coordinates calculations:
 const maxItems = Math.max(...dailySales.map(d => d.itemsSold), 5); // scale baseline
@@ -239,6 +242,79 @@ const peakDay = [...dailySales].sort((a, b) => b.itemsSold - a.itemsSold)[0] || 
         transition: all 0.2s;
       }
       .logout-btn:hover { background: #bc3c2d; border-color: #bc3c2d; color: #fff; }
+
+      /* User Profile Badge in Header */
+      .user-profile-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--text-main);
+      }
+      .user-avatar-icon { font-size: 0.85rem; }
+      .user-name-text { font-weight: 600; color: var(--text-main); }
+      .user-role-pill {
+        display: inline-block;
+        font-size: 0.58rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        padding: 2px 7px;
+        border-radius: 12px;
+      }
+      .badge-role-admin { background: rgba(188, 60, 45, 0.15); color: #bc3c2d; border: 1px solid rgba(188, 60, 45, 0.3); }
+      .badge-role-manager { background: rgba(245, 166, 35, 0.15); color: #f5a623; border: 1px solid rgba(245, 166, 35, 0.3); }
+      .badge-role-staff { background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.3); }
+
+      /* User Management Table Styles */
+      .user-avatar-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(188, 60, 45, 0.15);
+        color: #bc3c2d;
+        font-weight: 700;
+        font-size: 0.82rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(188, 60, 45, 0.3);
+        flex-shrink: 0;
+      }
+      .user-meta-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .btn-delete-user {
+        background: transparent;
+        border: 1px solid rgba(188, 60, 45, 0.3);
+        color: #bc3c2d;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s;
+      }
+      .btn-delete-user:hover {
+        background: #bc3c2d;
+        color: #fff;
+      }
+      .btn-delete-user:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        border-color: var(--border-color);
+        color: var(--text-muted);
+      }
 
       /* Main container */
       .dashboard-layout {
@@ -1192,6 +1268,15 @@ const peakDay = [...dailySales].sort((a, b) => b.itemsSold - a.itemsSold)[0] || 
         )}
       </div>
       <div class="nav-actions">
+        {currentUser && (
+          <div class="user-profile-badge" title={`Logged in as ${currentUser.email}`}>
+            <span class="user-avatar-icon">👤</span>
+            <span class="user-name-text">{currentUser.username}</span>
+            <span class={`user-role-pill badge-role-${currentUser.role || 'admin'}`}>
+              {currentUser.role || 'admin'}
+            </span>
+          </div>
+        )}
         <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Light or Dark Mode" title="Switch Light / Dark Theme">
           <span class="theme-toggle-icon" id="theme-toggle-icon">☀️</span>
           <span class="theme-toggle-text" id="theme-toggle-text">Light Mode</span>
@@ -1210,6 +1295,7 @@ const peakDay = [...dailySales].sort((a, b) => b.itemsSold - a.itemsSold)[0] || 
         <button class="tab-btn active" data-tab="tab-menu">🍽️ Menu Items ({menuItems.length})</button>
         <button class="tab-btn" data-tab="tab-sales">🛍️ Orders &amp; Sales ({recentOrders.length})</button>
         <button class="tab-btn" data-tab="tab-media">📸 Photos &amp; Media ({mediaList.length})</button>
+        <button class="tab-btn" data-tab="tab-users">👥 Team &amp; Users ({usersList.length})</button>
         <button class="tab-btn" data-tab="tab-settings">⚙️ Restaurant Info</button>
         <button class="tab-btn" data-tab="tab-db">🗄️ PostgreSQL Setup</button>
       </nav>
@@ -1737,6 +1823,108 @@ const peakDay = [...dailySales].sort((a, b) => b.itemsSold - a.itemsSold)[0] || 
         </div>
       </section>
 
+      <!-- ── TAB 4: USERS & TEAM MANAGEMENT ── -->
+      <section class="tab-panel" id="tab-users">
+        <div class="panel-action-row">
+          <div>
+            <h1 class="panel-title">Team &amp; User Accounts</h1>
+            <p style="color:#8b8379; font-size: 0.85rem; margin-top:4px;">
+              Manage database-authenticated administrators, managers, and POS staff members.
+            </p>
+          </div>
+          <button class="btn-primary" id="open-add-user-modal-btn">+ Add New User</button>
+        </div>
+
+        <!-- User Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-val">{usersList.length}</div>
+            <div class="stat-sub">Registered in database</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Administrators</div>
+            <div class="stat-val" style="color:#bc3c2d;">{usersList.filter(u => u.role === 'admin').length}</div>
+            <div class="stat-sub">Full system control</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Managers &amp; Staff</div>
+            <div class="stat-val" style="color:#f5c97a;">{usersList.filter(u => u.role !== 'admin').length}</div>
+            <div class="stat-sub">Orders, Menu &amp; POS</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Authentication Source</div>
+            <div class="stat-val" style="color:#25d366; font-size:1.15rem;">PostgreSQL (bcrypt)</div>
+            <div class="stat-sub">Table: "sal_limonResturant".users</div>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="items-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User Account</th>
+                <th>Email Address</th>
+                <th>Role / Access Level</th>
+                <th>Created / Joined</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usersList.map(user => {
+                const isSelf = currentUser && (currentUser.id === user.id || currentUser.email === user.email);
+                const formattedDate = user.created_at ? new Date(user.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Initial Seed';
+                const initial = (user.username || 'U').charAt(0).toUpperCase();
+
+                return (
+                  <tr id={`user-row-${user.id}`}>
+                    <td>
+                      <div class="user-meta-cell">
+                        <div class="user-avatar-circle">{initial}</div>
+                        <div>
+                          <strong>{user.username}</strong>
+                          {isSelf && <span class="badge-pill" style="margin-left:6px; background:rgba(37,211,102,0.15); color:#25d366; font-size:0.6rem;">You</span>}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <code style="font-family:'DM Mono',monospace; font-size:0.75rem; color:var(--text-main);">{user.email}</code>
+                    </td>
+                    <td>
+                      <span class={`user-role-pill badge-role-${user.role}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td>
+                      <span style="font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--text-sub);">{formattedDate}</span>
+                    </td>
+                    <td>
+                      <span class="status-badge status-picked-up">● Active</span>
+                    </td>
+                    <td>
+                      {isSelf ? (
+                        <small style="color:var(--text-muted); font-family:'DM Mono',monospace; font-size:0.65rem;">Current User</small>
+                      ) : (
+                        <button
+                          type="button"
+                          class="btn-delete-user"
+                          onclick={`deleteUserAccount('${user.id}', '${user.username}')`}
+                          title={`Delete ${user.username}`}
+                        >
+                          🗑️ Remove
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- ── TAB 3: SETTINGS ── -->
       <section class="tab-panel" id="tab-settings">
         <div class="panel-action-row">
@@ -1865,6 +2053,44 @@ const peakDay = [...dailySales].sort((a, b) => b.itemsSold - a.itemsSold)[0] || 
       </div>
     </div>
 
+    <!-- ── ADD USER MODAL ── -->
+    <div class="modal-overlay" id="add-user-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2 class="modal-title">Create Database User</h2>
+          <button class="modal-close" id="close-add-user-modal-btn">&times;</button>
+        </div>
+        <form id="add-user-form">
+          <div class="form-field">
+            <label for="new-user-username">Username</label>
+            <input type="text" id="new-user-username" placeholder="e.g. maria_pos" required autocomplete="username" />
+          </div>
+          <div class="form-field">
+            <label for="new-user-email">Email Address</label>
+            <input type="email" id="new-user-email" placeholder="e.g. maria@salylimon.com" required autocomplete="email" />
+          </div>
+          <div class="form-field">
+            <label for="new-user-role">Role &amp; Permissions</label>
+            <select id="new-user-role" required>
+              <option value="staff" selected>Staff (POS Register &amp; Orders)</option>
+              <option value="manager">Manager (POS, Orders, Menu &amp; Media)</option>
+              <option value="admin">Administrator (Full Dashboard &amp; User Controls)</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="new-user-password">Password (min. 6 characters)</label>
+            <input type="password" id="new-user-password" placeholder="••••••••" minlength="6" required autocomplete="new-password" />
+            <small style="color:var(--text-muted); font-size:0.7rem; margin-top:3px; display:block;">
+              Password will be encrypted using bcrypt before persisting to PostgreSQL.
+            </small>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-save-new-user" style="width:100%; margin-top:8px;">
+            Save User to Database
+          </button>
+        </form>
+      </div>
+    </div>
+
     <!-- Notification Toast -->
     <div class="toast" id="toast">Saved successfully!</div>
 
@@ -1891,6 +2117,87 @@ const peakDay = [...dailySales].sort((a, b) => b.itemsSold - a.itemsSold)[0] || 
         toast.classList.add('active');
         setTimeout(() => toast.classList.remove('active'), 3000);
       }
+
+      // User Management Modal and Operations
+      const addUserModal = document.getElementById('add-user-modal');
+      const openAddUserBtn = document.getElementById('open-add-user-modal-btn');
+      const closeAddUserBtn = document.getElementById('close-add-user-modal-btn');
+      const addUserForm = document.getElementById('add-user-form');
+
+      openAddUserBtn?.addEventListener('click', () => {
+        addUserModal?.classList.add('active');
+        document.getElementById('new-user-username')?.focus();
+      });
+
+      closeAddUserBtn?.addEventListener('click', () => {
+        addUserModal?.classList.remove('active');
+      });
+
+      addUserModal?.addEventListener('click', (e) => {
+        if (e.target === addUserModal) addUserModal.classList.remove('active');
+      });
+
+      addUserForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('btn-save-new-user');
+        const username = document.getElementById('new-user-username')?.value.trim();
+        const email = document.getElementById('new-user-email')?.value.trim();
+        const role = document.getElementById('new-user-role')?.value;
+        const password = document.getElementById('new-user-password')?.value;
+
+        if (!username || !email || !password) {
+          alert('Please fill in all required fields');
+          return;
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Saving to Database...';
+        }
+
+        try {
+          const res = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, role, password }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast('User created successfully in PostgreSQL database!');
+            addUserModal?.classList.remove('active');
+            addUserForm.reset();
+            setTimeout(() => window.location.reload(), 700);
+          } else {
+            alert(data.error || 'Failed to create user');
+          }
+        } catch (err) {
+          alert('Network error creating user');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save User to Database';
+          }
+        }
+      });
+
+      window.deleteUserAccount = async function(userId, username) {
+        if (!confirm(`Are you sure you want to permanently delete user account "${username}" from the database?`)) {
+          return;
+        }
+        try {
+          const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`User ${username} removed from database!`);
+            const row = document.getElementById(`user-row-${userId}`);
+            if (row) row.remove();
+          } else {
+            alert(data.error || 'Failed to delete user');
+          }
+        } catch (err) {
+          alert('Network error deleting user');
+        }
+      };
 
       // Update Price
       async function updatePrice(input) {
