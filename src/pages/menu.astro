@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { menuCategories } from '../data/menu';
+import { getMenuCategories } from '../db/client';
+
+const menuCategories = await getMenuCategories();
 ---
 <Layout
   title="Menu | Sal y Limón"

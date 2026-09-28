@@ -1,0 +1,918 @@
+---
+import { isAuthenticated } from '../../lib/auth';
+import {
+  getAdminMenuItems,
+  getMenuCategories,
+  getMediaList,
+  getSettings,
+  checkDbConnection
+} from '../../db/client';
+
+if (!isAuthenticated(Astro.cookies)) {
+  return Astro.redirect('/admin/login');
+}
+
+const isDbOnline = await checkDbConnection();
+const menuItems = await getAdminMenuItems();
+const categories = await getMenuCategories();
+const mediaList = await getMediaList();
+const settings = await getSettings();
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sal y Limón | Client Admin Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #191716;
+        color: #f4eee4;
+        font-family: "DM Sans", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      a { color: inherit; text-decoration: none; }
+
+      /* Top Navbar */
+      .admin-navbar {
+        background: #24211f;
+        border-bottom: 1px solid #383431;
+        padding: 16px 5vw;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .nav-logo {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .nav-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+      .nav-badge {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        padding: 4px 8px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .badge-online { background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.3); }
+      .badge-local  { background: rgba(245, 166, 35, 0.15); color: #f5a623; border: 1px solid rgba(245, 166, 35, 0.3); }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .nav-btn {
+        font-family: "DM Mono", monospace;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #aaa197;
+        transition: color 0.2s;
+      }
+      .nav-btn:hover { color: #f4eee4; }
+      .logout-btn {
+        background: #332f2c;
+        border: 1px solid #4a4541;
+        color: #f4eee4;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.68rem;
+        cursor: pointer;
+        text-transform: uppercase;
+      }
+      .logout-btn:hover { background: #bc3c2d; border-color: #bc3c2d; }
+
+      /* Main container */
+      .dashboard-layout {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 36px 5vw 80px;
+        width: 100%;
+        flex: 1;
+      }
+
+      /* Tabs */
+      .tab-bar {
+        display: flex;
+        gap: 10px;
+        border-bottom: 1px solid #383431;
+        margin-bottom: 32px;
+        overflow-x: auto;
+      }
+      .tab-btn {
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: #8b8379;
+        font-family: "DM Mono", monospace;
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 12px 18px;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .tab-btn:hover { color: #f4eee4; }
+      .tab-btn.active {
+        color: #bc3c2d;
+        border-bottom-color: #bc3c2d;
+        font-weight: 500;
+      }
+
+      /* Panels */
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+
+      /* Action Row */
+      .panel-action-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 26px;
+      }
+      .panel-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.8rem;
+      }
+      .btn-primary {
+        background: #bc3c2d;
+        color: #f4eee4;
+        border: none;
+        border-radius: 6px;
+        padding: 11px 20px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn-primary:hover { background: #d44737; }
+
+      /* Menu Items Table */
+      .items-table-wrap {
+        background: #24211f;
+        border: 1px solid #383431;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+      th {
+        background: #1e1b1a;
+        padding: 14px 18px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        color: #8b8379;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border-bottom: 1px solid #383431;
+      }
+      td {
+        padding: 16px 18px;
+        border-bottom: 1px solid #2d2927;
+        font-size: 0.88rem;
+      }
+      tr:last-child td { border-bottom: none; }
+      tr:hover td { background: rgba(255,255,255,0.02); }
+
+      .item-name-cell strong {
+        display: block;
+        color: #f4eee4;
+        font-family: "Playfair Display", serif;
+        font-size: 1.05rem;
+      }
+      .item-name-cell small {
+        color: #8b8379;
+        font-size: 0.75rem;
+      }
+      .cat-tag {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        padding: 3px 8px;
+        background: #332f2c;
+        border-radius: 4px;
+        color: #d4cbbe;
+        text-transform: uppercase;
+      }
+      .price-input {
+        background: #191716;
+        border: 1px solid #3d3936;
+        color: #bc3c2d;
+        font-family: "DM Mono", monospace;
+        font-size: 0.82rem;
+        font-weight: 500;
+        padding: 6px 8px;
+        border-radius: 4px;
+        width: 75px;
+      }
+      .badge-pill {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        padding: 2px 7px;
+        border-radius: 4px;
+        background: rgba(188, 60, 45, 0.2);
+        color: #e67e73;
+        border: 1px solid rgba(188, 60, 45, 0.4);
+        display: inline-block;
+      }
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+      .toggle-switch input { opacity: 0; width: 0; height: 0; }
+      .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background-color: #3d3936; transition: .3s; border-radius: 24px;
+      }
+      .slider:before {
+        position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+        background-color: white; transition: .3s; border-radius: 50%;
+      }
+      input:checked + .slider { background-color: #25d366; }
+      input:checked + .slider:before { transform: translateX(20px); }
+
+      .action-btns {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-icon {
+        background: #332f2c;
+        border: 1px solid #4a4541;
+        color: #f4eee4;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.75rem;
+      }
+      .btn-icon:hover { background: #bc3c2d; border-color: #bc3c2d; }
+
+      /* Media Gallery Grid */
+      .upload-dropzone {
+        background: #24211f;
+        border: 2px dashed #4a4541;
+        border-radius: 8px;
+        padding: 40px 24px;
+        text-align: center;
+        margin-bottom: 32px;
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+      .upload-dropzone:hover { border-color: #bc3c2d; }
+      .upload-icon { font-size: 2.4rem; display: block; margin-bottom: 12px; }
+      .upload-dropzone p { color: #aaa197; font-size: 0.9rem; }
+      .upload-dropzone small { color: #69645d; font-family: "DM Mono", monospace; font-size: 0.65rem; }
+
+      .media-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 20px;
+      }
+      .media-card {
+        background: #24211f;
+        border: 1px solid #383431;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .media-thumb {
+        height: 170px;
+        width: 100%;
+        object-fit: cover;
+        background: #191716;
+      }
+      .media-info {
+        padding: 14px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .media-title {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .media-url-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .media-url-input {
+        background: #191716;
+        border: 1px solid #383431;
+        color: #8b8379;
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        padding: 5px 8px;
+        border-radius: 4px;
+        flex: 1;
+      }
+      .copy-btn {
+        background: #332f2c;
+        border: 1px solid #4a4541;
+        color: #f4eee4;
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        padding: 5px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .copy-btn:hover { background: #bc3c2d; }
+
+      /* Settings Form */
+      .settings-card {
+        background: #24211f;
+        border: 1px solid #383431;
+        border-radius: 8px;
+        padding: 36px;
+        max-width: 720px;
+      }
+      .form-field { margin-bottom: 24px; }
+      .form-field label {
+        display: block;
+        font-family: "DM Mono", monospace;
+        font-size: 0.7rem;
+        color: #aaa197;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .form-field input, .form-field textarea, .form-field select {
+        width: 100%;
+        background: #191716;
+        border: 1px solid #3d3936;
+        border-radius: 6px;
+        padding: 12px 14px;
+        color: #f4eee4;
+        font-family: inherit;
+        font-size: 0.9rem;
+      }
+      .form-field textarea { min-height: 80px; resize: vertical; }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.75);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal-box {
+        background: #24211f;
+        border: 1px solid #4a4541;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 500px;
+        padding: 32px;
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+      .modal-title { font-family: "Playfair Display", serif; font-size: 1.4rem; }
+      .modal-close {
+        background: none; border: none; color: #8b8379; font-size: 1.4rem; cursor: pointer;
+      }
+
+      /* Notification Toast */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #25d366;
+        color: #111;
+        font-family: "DM Mono", monospace;
+        font-size: 0.72rem;
+        padding: 12px 20px;
+        border-radius: 6px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 2000;
+      }
+      .toast.active { transform: translateY(0); opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <header class="admin-navbar">
+      <div class="nav-brand">
+        <img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" class="nav-logo" />
+        <span class="nav-title">Sal y Limón Admin</span>
+        {isDbOnline ? (
+          <span class="nav-badge badge-online">● Postgres Connected</span>
+        ) : (
+          <span class="nav-badge badge-local" title="Operating with local memory fallback. Connect PostgreSQL in .env to persist to database.">
+            ● Local Mode (DB Offline)
+          </span>
+        )}
+      </div>
+      <div class="nav-actions">
+        <a href="/" target="_blank" class="nav-btn">Public Website ↗</a>
+        <a href="/menu" target="_blank" class="nav-btn">Menu Page ↗</a>
+        <a href="/api/auth/logout" class="logout-btn">Log Out</a>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="dashboard-layout">
+      <!-- Tabs -->
+      <nav class="tab-bar" aria-label="Dashboard views">
+        <button class="tab-btn active" data-tab="tab-menu">🍽️ Menu Items ({menuItems.length})</button>
+        <button class="tab-btn" data-tab="tab-media">📸 Photos &amp; Media ({mediaList.length})</button>
+        <button class="tab-btn" data-tab="tab-settings">⚙️ Restaurant Info</button>
+        <button class="tab-btn" data-tab="tab-db">🗄️ PostgreSQL Setup</button>
+      </nav>
+
+      <!-- ── TAB 1: MENU ITEMS ── -->
+      <section class="tab-panel active" id="tab-menu">
+        <div class="panel-action-row">
+          <div>
+            <h1 class="panel-title">Menu Management</h1>
+            <p style="color:#8b8379; font-size: 0.85rem; margin-top:4px;">
+              Update dish names, prices, tags, and instantly toggle items in or out of stock.
+            </p>
+          </div>
+          <button class="btn-primary" id="open-add-modal-btn">+ Add New Menu Item</button>
+        </div>
+
+        <div class="items-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Item &amp; Description</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Badges / Tags</th>
+                <th>In Stock</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {menuItems.map(item => (
+                <tr id={`row-${item.id}`}>
+                  <td class="item-name-cell">
+                    <strong>{item.name}</strong>
+                    <small>{item.detail}</small>
+                  </td>
+                  <td>
+                    <span class="cat-tag">{item.category_id}</span>
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      class="price-input"
+                      value={item.price}
+                      data-id={item.id}
+                      onchange="updatePrice(this)"
+                    />
+                  </td>
+                  <td>
+                    {item.badge && <span class="badge-pill">{item.badge}</span>}
+                    {item.tag && <span class="badge-pill" style="margin-left:4px;">{item.tag}</span>}
+                  </td>
+                  <td>
+                    <label class="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={item.is_available !== false}
+                        data-id={item.id}
+                        onchange="toggleAvailability(this)"
+                      />
+                      <span class="slider"></span>
+                    </label>
+                  </td>
+                  <td>
+                    <div class="action-btns">
+                      <button
+                        class="btn-icon"
+                        title="Delete item"
+                        onclick={`deleteItem('${item.id}', '${item.name}')`}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── TAB 2: PHOTOS & MEDIA ── -->
+      <section class="tab-panel" id="tab-media">
+        <div class="panel-action-row">
+          <div>
+            <h1 class="panel-title">Photo Gallery &amp; Media</h1>
+            <p style="color:#8b8379; font-size: 0.85rem; margin-top:4px;">
+              Upload food pictures, interior shots, or banners. Files are saved in <code>public/uploads/</code>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Upload Dropzone -->
+        <div class="upload-dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" accept="image/*" style="display:none;" />
+          <span class="upload-icon">📷</span>
+          <p><strong>Click to browse</strong> or drag and drop a new picture</p>
+          <small>Supported: JPG, PNG, WEBP, AVIF (Max 15MB)</small>
+        </div>
+
+        <!-- Media Grid -->
+        <div class="media-grid">
+          {mediaList.map(media => (
+            <div class="media-card" id={`media-${media.id}`}>
+              <img src={media.file_url} alt={media.title || media.file_name} class="media-thumb" />
+              <div class="media-info">
+                <div>
+                  <div class="media-title">{media.title || media.file_name}</div>
+                  <span class="cat-tag">{media.category}</span>
+                </div>
+                <div class="media-url-row">
+                  <input type="text" class="media-url-input" value={media.file_url} readonly />
+                  <button class="copy-btn" onclick={`copyUrl('${media.file_url}')`}>Copy</button>
+                  <button class="btn-icon" onclick={`deleteMediaFile('${media.id}')`} title="Delete">🗑️</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- ── TAB 3: SETTINGS ── -->
+      <section class="tab-panel" id="tab-settings">
+        <div class="panel-action-row">
+          <div>
+            <h1 class="panel-title">Restaurant Information</h1>
+            <p style="color:#8b8379; font-size: 0.85rem; margin-top:4px;">
+              Modify hours, announcement banners, and WhatsApp contact numbers.
+            </p>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <form id="settings-form">
+            <div class="form-field">
+              <label for="announcement_text">Top Announcement Ticker</label>
+              <textarea id="announcement_text" name="announcement_text">{settings.announcement_text}</textarea>
+            </div>
+
+            <div class="form-field">
+              <label for="phone_number">Contact Phone Number</label>
+              <input type="text" id="phone_number" name="phone_number" value={settings.phone_number} />
+            </div>
+
+            <div class="form-field">
+              <label for="whatsapp_number">WhatsApp Digits (without + or dashes)</label>
+              <input type="text" id="whatsapp_number" name="whatsapp_number" value={settings.whatsapp_number} placeholder="5016362275" />
+            </div>
+
+            <div class="form-field">
+              <label for="opening_hours">Opening Hours Text</label>
+              <input type="text" id="opening_hours" name="opening_hours" value={settings.opening_hours} />
+            </div>
+
+            <button type="submit" class="btn-primary">Save Restaurant Settings</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── TAB 4: POSTGRESQL SETUP ── -->
+      <section class="tab-panel" id="tab-db">
+        <div class="panel-action-row">
+          <div>
+            <h1 class="panel-title">PostgreSQL Database Connection</h1>
+            <p style="color:#8b8379; font-size: 0.85rem; margin-top:4px;">
+              Connect your external or hosted PostgreSQL instance to persist all changes permanently.
+            </p>
+          </div>
+        </div>
+
+        <div class="settings-card" style="max-width: 850px;">
+          <h3 style="font-family:'Playfair Display',serif; font-size:1.2rem; margin-bottom:12px;">
+            Connection Status: {isDbOnline ? '✅ Connected & Active' : '⚠️ Operating in Local Memory Mode'}
+          </h3>
+          <p style="color:#aaa197; font-size:0.85rem; line-height:1.6; margin-bottom:20px;">
+            The application includes full PostgreSQL support. When your database is running, all menu modifications and photo uploads persist to your database tables. If the database is offline or not configured yet, the dashboard gracefully uses memory storage so nothing breaks.
+          </p>
+
+          <div style="background:#191716; padding:18px; border-radius:6px; border:1px solid #383431; margin-bottom:20px;">
+            <p style="font-family:'DM Mono',monospace; font-size:0.75rem; color:#f5c97a; margin-bottom:6px;">
+              1. Setup your PostgreSQL Database URL in <code>astr/.env</code>:
+            </p>
+            <code style="display:block; font-family:'DM Mono',monospace; font-size:0.78rem; color:#85e89d; background:#121110; padding:10px; border-radius:4px;">
+              DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/DATABASE_NAME
+            </code>
+          </div>
+
+          <div style="background:#191716; padding:18px; border-radius:6px; border:1px solid #383431;">
+            <p style="font-family:'DM Mono',monospace; font-size:0.75rem; color:#f5c97a; margin-bottom:6px;">
+              2. Run the Schema script (Creates schema "sal_limonResturant" &amp; tables):
+            </p>
+            <p style="color:#8b8379; font-size:0.8rem; margin-bottom:10px;">
+              The script <code>astr/src/db/schema.sql</code> automatically creates the dedicated schema <code>"sal_limonResturant"</code> and populates all tables and initial dishes.
+            </p>
+            <code style="display:block; font-family:'DM Mono',monospace; font-size:0.78rem; color:#85e89d; background:#121110; padding:10px; border-radius:4px;">
+              psql -d YOUR_DATABASE -f src/db/schema.sql
+            </code>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ── ADD ITEM MODAL ── -->
+    <div class="modal-overlay" id="add-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2 class="modal-title">Add New Dish</h2>
+          <button class="modal-close" id="close-modal-btn">&times;</button>
+        </div>
+        <form id="add-item-form">
+          <div class="form-field">
+            <label for="new-category">Category</label>
+            <select id="new-category" required>
+              {categories.map(c => (
+                <option value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="new-name">Dish Name</label>
+            <input type="text" id="new-name" placeholder="e.g. Tacos de Pescado" required />
+          </div>
+          <div class="form-field">
+            <label for="new-price">Price</label>
+            <input type="text" id="new-price" placeholder="e.g. $18" required />
+          </div>
+          <div class="form-field">
+            <label for="new-detail">Description / Ingredients</label>
+            <textarea id="new-detail" placeholder="Fresh grilled mahi-mahi, pickled cabbage, habanero lime crema..."></textarea>
+          </div>
+          <div class="form-field">
+            <label for="new-badge">Badge (Optional)</label>
+            <input type="text" id="new-badge" placeholder="e.g. House Specialty, Chef's Catch, Popular" />
+          </div>
+          <div class="form-field">
+            <label for="new-tag">Dietary Tag (Optional)</label>
+            <select id="new-tag">
+              <option value="">None</option>
+              <option value="GF">GF (Gluten-Free)</option>
+              <option value="V">V (Vegetarian)</option>
+              <option value="Spicy">Spicy 🌶️</option>
+              <option value="Signature">Signature</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%;">Create Menu Item</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">Saved successfully!</div>
+
+    <script is:inline>
+      // Tab Navigation
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabPanels = document.querySelectorAll('.tab-panel');
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          tabPanels.forEach(p => p.classList.remove('active'));
+
+          btn.classList.add('active');
+          const target = btn.getAttribute('data-tab');
+          document.getElementById(target)?.classList.add('active');
+        });
+      });
+
+      // Toast notification helper
+      function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('active');
+        setTimeout(() => toast.classList.remove('active'), 3000);
+      }
+
+      // Update Price
+      async function updatePrice(input) {
+        const id = input.getAttribute('data-id');
+        const price = input.value;
+        try {
+          const res = await fetch('/api/menu/items', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, updates: { price } }),
+          });
+          if (res.ok) showToast('Price updated!');
+        } catch {
+          alert('Failed to update price');
+        }
+      }
+
+      // Toggle Availability
+      async function toggleAvailability(checkbox) {
+        const id = checkbox.getAttribute('data-id');
+        const is_available = checkbox.checked;
+        try {
+          const res = await fetch('/api/menu/items', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, updates: { is_available } }),
+          });
+          if (res.ok) showToast(is_available ? 'Item marked In Stock!' : 'Item marked Sold Out!');
+        } catch {
+          alert('Failed to update status');
+        }
+      }
+
+      // Delete Item
+      async function deleteItem(id, name) {
+        if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+        try {
+          const res = await fetch('/api/menu/items', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+          });
+          if (res.ok) {
+            document.getElementById(`row-${id}`)?.remove();
+            showToast('Item deleted');
+          }
+        } catch {
+          alert('Failed to delete item');
+        }
+      }
+
+      // Modal Handlers
+      const modal = document.getElementById('add-modal');
+      document.getElementById('open-add-modal-btn')?.addEventListener('click', () => modal.classList.add('active'));
+      document.getElementById('close-modal-btn')?.addEventListener('click', () => modal.classList.remove('active'));
+
+      // Add Item Form
+      document.getElementById('add-item-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const category_id = document.getElementById('new-category').value;
+        const name = document.getElementById('new-name').value;
+        const price = document.getElementById('new-price').value;
+        const detail = document.getElementById('new-detail').value;
+        const badge = document.getElementById('new-badge').value;
+        const tag = document.getElementById('new-tag').value;
+
+        try {
+          const res = await fetch('/api/menu/items', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ category_id, name, price, detail, badge, tag }),
+          });
+          if (res.ok) {
+            showToast('New dish created!');
+            setTimeout(() => window.location.reload(), 800);
+          } else {
+            alert('Failed to create item');
+          }
+        } catch {
+          alert('Server error creating item');
+        }
+      });
+
+      // Photo Upload Dropzone
+      const fileInput = document.getElementById('file-input');
+      fileInput?.addEventListener('change', async () => {
+        const file = fileInput.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', file.name.split('.')[0]);
+        formData.append('category', 'gallery');
+
+        showToast('Uploading image...');
+
+        try {
+          const res = await fetch('/api/media/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast('Photo uploaded successfully!');
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            alert(data.error || 'Upload failed');
+          }
+        } catch {
+          alert('Upload failed. Check server connection.');
+        }
+      });
+
+      // Delete Media
+      async function deleteMediaFile(id) {
+        if (!confirm('Are you sure you want to delete this photo?')) return;
+        try {
+          const res = await fetch('/api/media/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+          });
+          if (res.ok) {
+            document.getElementById(`media-${id}`)?.remove();
+            showToast('Photo removed');
+          }
+        } catch {
+          alert('Failed to delete');
+        }
+      }
+
+      // Copy URL helper
+      function copyUrl(url) {
+        navigator.clipboard.writeText(window.location.origin + url);
+        showToast('Copied full image URL to clipboard!');
+      }
+
+      // Settings Form
+      document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const announcement_text = document.getElementById('announcement_text').value;
+        const phone_number = document.getElementById('phone_number').value;
+        const whatsapp_number = document.getElementById('whatsapp_number').value;
+        const opening_hours = document.getElementById('opening_hours').value;
+
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'announcement_text', value: announcement_text }),
+          });
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'phone_number', value: phone_number }),
+          });
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'whatsapp_number', value: whatsapp_number }),
+          });
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'opening_hours', value: opening_hours }),
+          });
+
+          showToast('Restaurant info updated!');
+        } catch {
+          alert('Failed to save settings');
+        }
+      });
+    </script>
+  </body>
+</html>
