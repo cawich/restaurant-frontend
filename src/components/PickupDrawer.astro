@@ -1,0 +1,1244 @@
+---
+import { getMenuCategories } from '../db/client';
+
+const menuCategories = await getMenuCategories();
+---
+<!-- ── FLOATING PICKUP CART PILL ── -->
+<button
+  class="floating-pickup-btn"
+  id="floating-pickup-btn"
+  type="button"
+  aria-label="View pickup order cart"
+>
+  <span class="pickup-btn-icon">🛍️</span>
+  <span class="pickup-btn-text">Pickup Order</span>
+  <span class="pickup-badge" id="pickup-badge-count">0</span>
+</button>
+
+<!-- ── PICKUP ORDER DRAWER MODAL ── -->
+<div class="pickup-drawer-overlay" id="pickup-drawer-overlay" aria-hidden="true">
+  <div class="pickup-drawer" id="pickup-drawer" role="dialog" aria-modal="true" aria-label="Pickup order checkout">
+    
+    <!-- Drawer Header -->
+    <div class="drawer-header">
+      <div>
+        <p class="drawer-eyebrow">Sal y Limón Pickup</p>
+        <h2 class="drawer-title">Your Order</h2>
+      </div>
+      <button class="drawer-close-btn" id="drawer-close-btn" aria-label="Close cart">&times;</button>
+    </div>
+
+    <!-- VIEW 1: CART & CHECKOUT FORM -->
+    <div class="drawer-content" id="drawer-cart-view">
+      
+      <!-- Cart Items Section -->
+      <div class="drawer-section">
+        <div class="section-heading-row">
+          <h3 class="section-heading">1. Selected Dishes</h3>
+          <button type="button" class="toggle-menu-picker-btn" id="toggle-menu-picker-btn">
+            <span id="picker-btn-icon">＋</span> <span id="picker-btn-text">Add Dishes</span>
+          </button>
+        </div>
+
+        <div class="cart-items-list" id="cart-items-list">
+          <div class="cart-empty-state">
+            <span class="empty-icon">🌮</span>
+            <p>Your pickup bag is empty</p>
+            <small>Tap <strong>"+ Add Dishes"</strong> below or select from our menu list</small>
+          </div>
+        </div>
+
+        <!-- ── INTERACTIVE IN-DRAWER MENU PICKER ── -->
+        <div class="drawer-menu-picker" id="drawer-menu-picker">
+          <div class="picker-panel-heading">
+            <span>Choose Your Dishes</span>
+            <small>Tap ＋ Add to include in your order</small>
+          </div>
+
+          <div class="picker-controls">
+            <!-- Search bar -->
+            <div class="picker-search-wrap">
+              <span class="picker-search-icon">🔍</span>
+              <input
+                type="text"
+                id="drawer-dish-search"
+                placeholder="Search tacos, ceviches, drinks..."
+                aria-label="Filter menu items"
+                autocomplete="off"
+              />
+              <button type="button" id="picker-search-clear" class="picker-clear-btn" style="display:none;" title="Clear search">✕</button>
+            </div>
+
+            <!-- Categories Scroll -->
+            <div class="picker-cat-scroll" id="picker-cat-scroll">
+              <button type="button" class="drawer-cat-tab active" data-cat="all">All</button>
+              {menuCategories.map(cat => (
+                <button type="button" class="drawer-cat-tab" data-cat={cat.id || cat.name.toLowerCase()}>
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <!-- Dishes List -->
+          <div class="drawer-dishes-list" id="drawer-dishes-list">
+            {menuCategories.flatMap(cat =>
+              cat.items.map(dish => (
+                <div
+                  class="drawer-dish-row"
+                  data-cat={cat.id || cat.name.toLowerCase()}
+                  data-name={dish.name.toLowerCase()}
+                  data-detail={(dish.detail || '').toLowerCase()}
+                >
+                  <div class="drawer-dish-details">
+                    <div class="drawer-dish-name-line">
+                      <strong class="dish-name">{dish.name}</strong>
+                      <span class="dish-cat-pill">{cat.name}</span>
+                    </div>
+                    {dish.detail && <p class="dish-desc">{dish.detail}</p>}
+                  </div>
+                  <div class="drawer-dish-right">
+                    <span class="dish-price">{dish.price}</span>
+                    <button
+                      type="button"
+                      class="dish-add-action-btn"
+                      data-name={dish.name}
+                      data-price={dish.price}
+                    >
+                      <span class="plus-icon">＋</span> Add
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+            <div class="picker-no-results" id="picker-no-results" style="display:none;">
+              No dishes found matching your search.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Details Form -->
+      <form id="pickup-checkout-form" class="drawer-section">
+        <h3 class="section-heading">2. Pickup &amp; Customer Details</h3>
+        
+        <div class="drawer-field">
+          <label for="pickup-customer-name">Full Name *</label>
+          <input
+            type="text"
+            id="pickup-customer-name"
+            name="customer_name"
+            required
+            placeholder="e.g. Maria Gonzalez"
+          />
+        </div>
+
+        <div class="drawer-field">
+          <label for="pickup-customer-phone">Phone / WhatsApp Number *</label>
+          <input
+            type="tel"
+            id="pickup-customer-phone"
+            name="customer_phone"
+            required
+            placeholder="e.g. +501 636-2275"
+          />
+        </div>
+
+        <div class="drawer-field">
+          <label for="pickup-time-select">Estimated Arrival / Pickup Time *</label>
+          <select id="pickup-time-select" name="pickup_time" required>
+            <option value="In 20-25 minutes">In 20 – 25 minutes (Fastest)</option>
+            <option value="In 35-45 minutes">In 35 – 45 minutes</option>
+            <option value="In 1 hour">In ~1 hour</option>
+            <option value="Lunch: 12:30 PM">Lunch: 12:30 PM</option>
+            <option value="Lunch: 1:30 PM">Lunch: 1:30 PM</option>
+            <option value="Dinner: 6:00 PM">Dinner: 6:00 PM</option>
+            <option value="Dinner: 7:30 PM">Dinner: 7:30 PM</option>
+            <option value="Dinner: 8:30 PM">Dinner: 8:30 PM</option>
+          </select>
+        </div>
+
+        <div class="drawer-field">
+          <label for="pickup-notes">Special Instructions (Optional)</label>
+          <textarea
+            id="pickup-notes"
+            name="notes"
+            rows="2"
+            placeholder="e.g. Extra green salsa, cilantro on the side, allergies..."
+          ></textarea>
+        </div>
+
+        <!-- Payment Notice for customer -->
+        <div class="payment-disclaimer">
+          <span class="pay-notice-icon">💳</span>
+          <div class="pay-notice-body">
+            <strong>Payment upon Pickup or Delivery</strong>
+            <p>Payment is handled when you collect your food. We accept <strong>Cash (BZD &amp; USD)</strong>, <strong>Card Payment</strong>, <strong>Bank Transfer</strong>, or <strong>DigiWallet</strong> at the counter.</p>
+          </div>
+        </div>
+
+        <!-- Order Calculations -->
+        <div class="cart-totals-box">
+          <div class="totals-row">
+            <span>Subtotal:</span>
+            <span id="drawer-subtotal">$0.00 BZD</span>
+          </div>
+          <div class="totals-row">
+            <span>GST (12.5%):</span>
+            <span id="drawer-tax">$0.00 BZD</span>
+          </div>
+          <div class="totals-row totals-grand">
+            <span>TOTAL:</span>
+            <span id="drawer-total">$0.00 BZD</span>
+          </div>
+          <div class="totals-usd" id="drawer-total-usd">≈ $0.00 USD (2:1 peg)</div>
+        </div>
+
+        <div id="drawer-error-alert" class="drawer-error" style="display:none;"></div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="drawer-submit-btn" id="drawer-submit-btn" disabled>
+          Confirm Pickup Order ($0.00)
+        </button>
+      </form>
+    </div>
+
+    <!-- VIEW 2: CONFIRMATION SCREEN (Shown after order is placed) -->
+    <div class="drawer-content drawer-success-view" id="drawer-success-view" style="display:none;">
+      <div class="success-icon-wrap">
+        <span class="success-icon">✓</span>
+      </div>
+      <p class="drawer-eyebrow" style="color:#25d366;">Order Confirmed</p>
+      <h2 class="success-title">Order <span id="conf-order-num">#1005</span></h2>
+      <div class="success-flag-badge">🛍️ Flagged for Pickup</div>
+
+      <div class="confirmation-card">
+        <div class="conf-row">
+          <span>Customer:</span>
+          <strong id="conf-name">Maria G.</strong>
+        </div>
+        <div class="conf-row">
+          <span>Estimated Pickup:</span>
+          <strong id="conf-time" style="color:#f5c97a;">In 25 mins</strong>
+        </div>
+        <div class="conf-row">
+          <span>Payment Source:</span>
+          <strong id="conf-payment" style="color:#f5c97a;">💵 Cash on Pickup</strong>
+        </div>
+        <div class="conf-row">
+          <span>Total to Pay:</span>
+          <strong id="conf-total" style="color:#25d366;">$35.00 BZD</strong>
+        </div>
+      </div>
+
+      <p class="success-note">
+        Our kitchen and team have received your order alert! We will start preparing it fresh for your arrival.
+      </p>
+
+      <!-- Direct WhatsApp Action Button -->
+      <a
+        id="conf-wa-btn"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="wa-confirm-btn"
+      >
+        💬 Message Restaurant on WhatsApp ↗
+      </a>
+
+      <button type="button" class="drawer-done-btn" id="drawer-done-btn">Done / Place Another Order</button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  /* ── FLOATING PICKUP CART BUTTON ── */
+  .floating-pickup-btn {
+    position: fixed;
+    bottom: 26px;
+    left: 26px;
+    background: #bc3c2d;
+    color: #f4eee4;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    box-shadow: 0 8px 24px rgba(188, 60, 45, 0.45);
+    cursor: pointer;
+    z-index: 998;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
+  }
+  .floating-pickup-btn:hover {
+    transform: translateY(-2px) scale(1.04);
+    background: #d44737;
+  }
+  .pickup-btn-icon { font-size: 1.1rem; }
+  .pickup-badge {
+    background: #f4eee4;
+    color: #bc3c2d;
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  /* ── DRAWER OVERLAY & PANEL ── */
+  .pickup-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .pickup-drawer-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .pickup-drawer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 500px;
+    background: #1e1b1a;
+    color: #f4eee4;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 40px rgba(0,0,0,0.6);
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .pickup-drawer-overlay.active .pickup-drawer {
+    transform: translateX(0);
+  }
+
+  /* Header */
+  .drawer-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #332f2c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #24211f;
+  }
+  .drawer-eyebrow {
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    color: #bc3c2d;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .drawer-title {
+    font-family: "Playfair Display", serif;
+    font-size: 1.45rem;
+    margin: 0;
+  }
+  .drawer-close-btn {
+    background: none;
+    border: none;
+    color: #8b8379;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+  .drawer-close-btn:hover { color: #f4eee4; }
+
+  /* Body Content */
+  .drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 24px 40px;
+  }
+  .drawer-section {
+    margin-bottom: 26px;
+  }
+  .section-heading-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #332f2c;
+    padding-bottom: 6px;
+  }
+  .section-heading {
+    font-family: "DM Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #d4cbbe;
+    margin: 0;
+  }
+
+  /* Toggle Menu Picker Button */
+  .toggle-menu-picker-btn {
+    background: #282422;
+    border: 1px solid #bc3c2d;
+    color: #f5c97a;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+  }
+  .toggle-menu-picker-btn:hover {
+    background: #bc3c2d;
+    color: #ffffff;
+  }
+
+  /* ── IN-DRAWER MENU PICKER PANEL ── */
+  .drawer-menu-picker {
+    background: #141211;
+    border: 1px solid #2e2a28;
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 14px;
+    transition: all 0.3s ease;
+  }
+  .drawer-menu-picker.collapsed {
+    display: none;
+  }
+  .picker-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .picker-panel-heading span {
+    font-family: "Playfair Display", serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #f4eee4;
+  }
+  .picker-panel-heading small {
+    font-family: "DM Mono", monospace;
+    font-size: 0.62rem;
+    color: #8b8379;
+  }
+
+  .picker-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .picker-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .picker-search-icon {
+    position: absolute;
+    left: 10px;
+    font-size: 0.75rem;
+    color: #8b8379;
+    pointer-events: none;
+  }
+  #drawer-dish-search {
+    width: 100%;
+    background: #1e1b1a;
+    border: 1px solid #383431;
+    border-radius: 6px;
+    padding: 8px 30px 8px 30px;
+    color: #f4eee4;
+    font-family: inherit;
+    font-size: 0.8rem;
+  }
+  #drawer-dish-search:focus {
+    outline: none;
+    border-color: #bc3c2d;
+  }
+  .picker-clear-btn {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #8b8379;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  .picker-cat-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .picker-cat-scroll::-webkit-scrollbar { display: none; }
+  .drawer-cat-tab {
+    background: #1f1c1b;
+    border: 1px solid #383431;
+    color: #aaa197;
+    border-radius: 999px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    padding: 4px 10px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .drawer-cat-tab:hover {
+    color: #f4eee4;
+    border-color: #555;
+  }
+  .drawer-cat-tab.active {
+    background: #bc3c2d;
+    color: #fff;
+    border-color: #bc3c2d;
+  }
+
+  /* Dishes List inside Picker */
+  .drawer-dishes-list {
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 4px;
+  }
+  .drawer-dishes-list::-webkit-scrollbar {
+    width: 4px;
+  }
+  .drawer-dishes-list::-webkit-scrollbar-thumb {
+    background: #383431;
+    border-radius: 4px;
+  }
+
+  .drawer-dish-row {
+    background: #1c1918;
+    border: 1px solid #2e2a28;
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .drawer-dish-row:hover {
+    background: #24201e;
+    border-color: #423c38;
+  }
+  .drawer-dish-details {
+    flex: 1;
+    min-width: 0;
+  }
+  .drawer-dish-name-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+  .dish-name {
+    font-family: "Playfair Display", serif;
+    font-size: 0.88rem;
+    color: #f4eee4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dish-cat-pill {
+    background: rgba(188, 60, 45, 0.2);
+    color: #f59e94;
+    font-family: "DM Mono", monospace;
+    font-size: 0.55rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .dish-desc {
+    color: #797166;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .drawer-dish-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .dish-price {
+    font-family: "DM Mono", monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #bc3c2d;
+    white-space: nowrap;
+  }
+  .dish-add-action-btn {
+    background: #2b2725;
+    color: #f4eee4;
+    border: 1px solid #4a4541;
+    border-radius: 4px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .dish-add-action-btn:hover {
+    background: #bc3c2d;
+    border-color: #bc3c2d;
+    color: #ffffff;
+    transform: scale(1.03);
+  }
+  .dish-add-action-btn.added-state {
+    background: #25d366 !important;
+    border-color: #25d366 !important;
+    color: #111 !important;
+    font-weight: 700;
+  }
+  .picker-no-results {
+    text-align: center;
+    color: #8b8379;
+    font-size: 0.8rem;
+    padding: 20px;
+  }
+
+  /* Cart List */
+  .cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .cart-empty-state {
+    text-align: center;
+    padding: 24px 10px;
+    color: #8b8379;
+    background: #191716;
+    border: 1px dashed #332f2c;
+    border-radius: 6px;
+  }
+  .empty-icon { font-size: 2rem; display: block; margin-bottom: 6px; }
+  .cart-empty-state p { font-size: 0.92rem; color: #f4eee4; margin-bottom: 4px; }
+  .cart-empty-state small { font-size: 0.72rem; }
+
+  .cart-item-row {
+    background: #24211f;
+    border: 1px solid #332f2c;
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cart-item-info strong {
+    display: block;
+    font-family: "Playfair Display", serif;
+    font-size: 0.95rem;
+  }
+  .cart-item-info small {
+    font-family: "DM Mono", monospace;
+    font-size: 0.72rem;
+    color: #bc3c2d;
+  }
+  .cart-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cart-qty-btn {
+    width: 26px;
+    height: 26px;
+    background: #332f2c;
+    border: 1px solid #4a4541;
+    color: #f4eee4;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cart-qty-btn:hover { background: #bc3c2d; }
+  .cart-qty-val {
+    font-family: "DM Mono", monospace;
+    font-size: 0.85rem;
+    min-width: 18px;
+    text-align: center;
+  }
+  .cart-item-del {
+    background: none;
+    border: none;
+    color: #8b8379;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 0.9rem;
+  }
+  .cart-item-del:hover { color: #bc3c2d; }
+
+  /* Form Fields */
+  .drawer-field {
+    margin-bottom: 16px;
+  }
+  .drawer-field label {
+    display: block;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #aaa197;
+    margin-bottom: 6px;
+  }
+  .drawer-field input, .drawer-field select, .drawer-field textarea {
+    width: 100%;
+    background: #141211;
+    border: 1px solid #383431;
+    border-radius: 6px;
+    padding: 11px 13px;
+    color: #f4eee4;
+    font-family: inherit;
+    font-size: 0.88rem;
+  }
+  .drawer-field input:focus, .drawer-field select:focus, .drawer-field textarea:focus {
+    outline: none;
+    border-color: #bc3c2d;
+  }
+
+  /* Payment Disclaimer Notice */
+  .payment-disclaimer {
+    background: #24211f;
+    border: 1px solid #383431;
+    border-radius: 8px;
+    padding: 13px 15px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 18px 0;
+    line-height: 1.45;
+  }
+  .pay-notice-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .pay-notice-body strong {
+    display: block;
+    color: #f4eee4;
+    font-family: "Playfair Display", serif;
+    font-size: 0.92rem;
+    margin-bottom: 3px;
+  }
+  .pay-notice-body p {
+    color: #aaa197;
+    font-size: 0.75rem;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  /* Totals */
+  .cart-totals-box {
+    background: #171514;
+    border: 1px solid #2e2a28;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-family: "DM Mono", monospace;
+  }
+  .totals-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #8b8379;
+    margin-bottom: 6px;
+  }
+  .totals-grand {
+    border-top: 1px solid #332f2c;
+    padding-top: 8px;
+    margin-top: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #25d366;
+  }
+  .totals-usd {
+    font-size: 0.7rem;
+    color: #8b8379;
+    text-align: right;
+    margin-top: 2px;
+  }
+
+  .drawer-submit-btn {
+    width: 100%;
+    background: #25d366;
+    color: #111;
+    border: none;
+    border-radius: 6px;
+    padding: 16px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .drawer-submit-btn:hover { background: #2fe673; }
+  .drawer-submit-btn:disabled {
+    background: #332f2c;
+    color: #69645d;
+    cursor: not-allowed;
+  }
+
+  .drawer-error {
+    background: rgba(188, 60, 45, 0.2);
+    border: 1px solid #bc3c2d;
+    color: #f59e94;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+  }
+
+  /* Success View */
+  .drawer-success-view {
+    text-align: center;
+    padding-top: 40px;
+  }
+  .success-icon-wrap {
+    width: 64px;
+    height: 64px;
+    background: rgba(37, 211, 102, 0.15);
+    border: 2px solid #25d366;
+    color: #25d366;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+  }
+  .success-title {
+    font-family: "Playfair Display", serif;
+    font-size: 2rem;
+    margin: 4px 0 12px;
+  }
+  .success-flag-badge {
+    display: inline-block;
+    background: #bc3c2d;
+    color: #fff;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 24px;
+  }
+  .confirmation-card {
+    background: #24211f;
+    border: 1px solid #383431;
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  .conf-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    padding: 6px 0;
+    border-bottom: 1px solid #2f2b29;
+  }
+  .conf-row:last-child { border-bottom: none; }
+  .conf-row span { color: #8b8379; }
+  .success-note {
+    color: #aaa197;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .wa-confirm-btn {
+    display: block;
+    background: #128c7e;
+    color: #fff;
+    border-radius: 6px;
+    padding: 14px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 12px;
+    transition: background 0.2s;
+  }
+  .wa-confirm-btn:hover { background: #075e54; }
+  .drawer-done-btn {
+    background: transparent;
+    border: 1px solid #4a4541;
+    color: #aaa197;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .drawer-done-btn:hover { color: #f4eee4; border-color: #8b8379; }
+
+  @media (max-width: 600px) {
+    .floating-pickup-btn { bottom: 84px; left: 18px; padding: 10px 16px; font-size: 0.7rem; }
+    .pickup-drawer { max-width: 100%; }
+    .drawer-content { padding: 16px 16px 36px; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const STORAGE_KEY = 'sal_pickup_cart_items';
+    let cart = [];
+
+    // Load from storage
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) cart = JSON.parse(stored);
+    } catch (e) {}
+
+    const overlay = document.getElementById('pickup-drawer-overlay');
+    const closeBtn = document.getElementById('drawer-close-btn');
+    const floatingBtn = document.getElementById('floating-pickup-btn');
+    const cartView = document.getElementById('drawer-cart-view');
+    const successView = document.getElementById('drawer-success-view');
+
+    // Menu Picker Elements
+    const pickerPanel = document.getElementById('drawer-menu-picker');
+    const togglePickerBtn = document.getElementById('toggle-menu-picker-btn');
+    const pickerBtnText = document.getElementById('picker-btn-text');
+    const pickerBtnIcon = document.getElementById('picker-btn-icon');
+    const searchInput = document.getElementById('drawer-dish-search');
+    const searchClearBtn = document.getElementById('picker-search-clear');
+    const catTabs = document.querySelectorAll('.drawer-cat-tab');
+    const dishRows = document.querySelectorAll('.drawer-dish-row');
+    const noResults = document.getElementById('picker-no-results');
+
+    let currentCat = 'all';
+    let searchQuery = '';
+
+    // Drawer Open / Close
+    window.openPickupDrawer = function () {
+      overlay.classList.add('active');
+      cartView.style.display = 'block';
+      successView.style.display = 'none';
+      renderCart();
+    };
+
+    window.closePickupDrawer = function () {
+      overlay.classList.remove('active');
+    };
+
+    floatingBtn?.addEventListener('click', window.openPickupDrawer);
+    closeBtn?.addEventListener('click', window.closePickupDrawer);
+    overlay?.addEventListener('click', (e) => {
+      if (e.target === overlay) window.closePickupDrawer();
+    });
+
+    // Toggle menu picker inside drawer
+    let isPickerOpen = true;
+    function updatePickerState(open) {
+      isPickerOpen = open;
+      if (isPickerOpen) {
+        pickerPanel?.classList.remove('collapsed');
+        if (pickerBtnText) pickerBtnText.innerText = 'Hide Menu';
+        if (pickerBtnIcon) pickerBtnIcon.innerText = '▲';
+      } else {
+        pickerPanel?.classList.add('collapsed');
+        if (pickerBtnText) pickerBtnText.innerText = 'Add Dishes';
+        if (pickerBtnIcon) pickerBtnIcon.innerText = '＋';
+      }
+    }
+
+    togglePickerBtn?.addEventListener('click', () => {
+      updatePickerState(!isPickerOpen);
+    });
+
+    // In-drawer search & category filtering
+    function filterPickerDishes() {
+      let visibleCount = 0;
+      dishRows.forEach(row => {
+        const dishCat = row.getAttribute('data-cat') || '';
+        const dishName = row.getAttribute('data-name') || '';
+        const dishDetail = row.getAttribute('data-detail') || '';
+
+        const matchesCat = (currentCat === 'all' || dishCat === currentCat);
+        const matchesQuery = (!searchQuery || dishName.includes(searchQuery) || dishDetail.includes(searchQuery));
+
+        if (matchesCat && matchesQuery) {
+          row.style.display = 'flex';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      if (noResults) {
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+    }
+
+    // Category Tabs click
+    catTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        catTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentCat = tab.getAttribute('data-cat') || 'all';
+        filterPickerDishes();
+      });
+    });
+
+    // Search Input
+    searchInput?.addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      if (searchClearBtn) {
+        searchClearBtn.style.display = searchQuery ? 'block' : 'none';
+      }
+      filterPickerDishes();
+    });
+
+    searchClearBtn?.addEventListener('click', () => {
+      if (searchInput) {
+        searchInput.value = '';
+        searchQuery = '';
+        searchClearBtn.style.display = 'none';
+        filterPickerDishes();
+      }
+    });
+
+    // Add item globally and from in-drawer buttons
+    window.addToPickupCart = function (name, priceStr, clickedBtn) {
+      const numericPrice = parseFloat(String(priceStr).replace(/[^0-9.]/g, '')) || 0;
+      const existing = cart.find(i => i.name === name);
+
+      if (existing) {
+        existing.quantity++;
+      } else {
+        cart.push({
+          name,
+          price: priceStr,
+          numericPrice,
+          quantity: 1,
+        });
+      }
+
+      // Visual button feedback
+      if (clickedBtn) {
+        const origText = clickedBtn.innerHTML;
+        clickedBtn.classList.add('added-state');
+        clickedBtn.innerHTML = '✓ Added';
+        setTimeout(() => {
+          clickedBtn.classList.remove('added-state');
+          clickedBtn.innerHTML = origText;
+        }, 700);
+      }
+
+      saveCart();
+      window.openPickupDrawer();
+    };
+
+    // Bind all in-drawer "+ Add" buttons
+    document.querySelectorAll('.dish-add-action-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const name = btn.getAttribute('data-name');
+        const price = btn.getAttribute('data-price');
+        window.addToPickupCart(name, price, btn);
+      });
+    });
+
+    function saveCart() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+      } catch (e) {}
+      updateBadges();
+      renderCart();
+    }
+
+    function updateBadges() {
+      const count = cart.reduce((sum, i) => sum + i.quantity, 0);
+      const badge = document.getElementById('pickup-badge-count');
+      if (badge) badge.innerText = count.toString();
+    }
+
+    // Render cart items
+    function renderCart() {
+      updateBadges();
+      const list = document.getElementById('cart-items-list');
+      const submitBtn = document.getElementById('drawer-submit-btn');
+
+      if (cart.length === 0) {
+        list.innerHTML = `
+          <div class="cart-empty-state">
+            <span class="empty-icon">🌮</span>
+            <p>Your pickup bag is empty</p>
+            <small>Tap <strong>"+ Add Dishes"</strong> below or select from our menu list</small>
+          </div>
+        `;
+        document.getElementById('drawer-subtotal').innerText = '$0.00 BZD';
+        document.getElementById('drawer-tax').innerText = '$0.00 BZD';
+        document.getElementById('drawer-total').innerText = '$0.00 BZD';
+        document.getElementById('drawer-total-usd').innerText = '≈ $0.00 USD';
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Confirm Pickup Order ($0.00)';
+        return;
+      }
+
+      let subtotal = 0;
+      let html = '';
+
+      cart.forEach((item, idx) => {
+        const itemTotal = item.numericPrice * item.quantity;
+        subtotal += itemTotal;
+
+        html += `
+          <div class="cart-item-row">
+            <div class="cart-item-info">
+              <strong>${item.name}</strong>
+              <small>$${itemTotal.toFixed(2)} BZD</small>
+            </div>
+            <div class="cart-item-actions">
+              <button type="button" class="cart-qty-btn" onclick="window.modPickupQty(${idx}, -1)">-</button>
+              <span class="cart-qty-val">${item.quantity}</span>
+              <button type="button" class="cart-qty-btn" onclick="window.modPickupQty(${idx}, 1)">+</button>
+              <button type="button" class="cart-item-del" onclick="window.removePickupItem(${idx})" title="Remove item">✕</button>
+            </div>
+          </div>
+        `;
+      });
+
+      list.innerHTML = html;
+
+      const tax = subtotal * 0.125;
+      const total = subtotal + tax;
+      const totalUsd = total / 2;
+
+      document.getElementById('drawer-subtotal').innerText = `$${subtotal.toFixed(2)} BZD`;
+      document.getElementById('drawer-tax').innerText = `$${tax.toFixed(2)} BZD`;
+      document.getElementById('drawer-total').innerText = `$${total.toFixed(2)} BZD`;
+      document.getElementById('drawer-total-usd').innerText = `≈ $${totalUsd.toFixed(2)} USD (2:1 peg)`;
+
+      submitBtn.disabled = false;
+      submitBtn.innerText = `Confirm Pickup Order ($${total.toFixed(2)} BZD)`;
+    }
+
+    window.modPickupQty = function (idx, delta) {
+      if (!cart[idx]) return;
+      cart[idx].quantity += delta;
+      if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+      saveCart();
+    };
+
+    window.removePickupItem = function (idx) {
+      cart.splice(idx, 1);
+      saveCart();
+    };
+
+    // Submit Checkout
+    const form = document.getElementById('pickup-checkout-form');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (cart.length === 0) return;
+
+      const submitBtn = document.getElementById('drawer-submit-btn');
+      const errorAlert = document.getElementById('drawer-error-alert');
+      errorAlert.style.display = 'none';
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Transmitting order to kitchen...';
+
+      const customer_name = document.getElementById('pickup-customer-name').value;
+      const customer_phone = document.getElementById('pickup-customer-phone').value;
+      const pickup_time = document.getElementById('pickup-time-select').value;
+      const notes = document.getElementById('pickup-notes').value;
+
+      try {
+        const res = await fetch('/api/orders/pickup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_name,
+            customer_phone,
+            pickup_time,
+            payment_method: 'pay_on_pickup',
+            notes,
+            items: cart,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          // Empty cart
+          cart = [];
+          saveCart();
+
+          // Show Confirmation
+          document.getElementById('conf-order-num').innerText = `#${data.order.order_number}`;
+          document.getElementById('conf-name').innerText = data.order.customer_name;
+          document.getElementById('conf-time').innerText = data.order.pickup_time;
+          document.getElementById('conf-total').innerText = `$${Number(data.order.total).toFixed(2)} BZD`;
+
+          const confPay = document.getElementById('conf-payment');
+          if (confPay) confPay.innerText = 'Pay upon Pickup / Delivery';
+
+          const waBtn = document.getElementById('conf-wa-btn');
+          if (waBtn) waBtn.setAttribute('href', data.whatsapp_url);
+
+          cartView.style.display = 'none';
+          successView.style.display = 'block';
+        } else {
+          errorAlert.innerText = data.error || 'Failed to place pickup order';
+          errorAlert.style.display = 'block';
+          submitBtn.disabled = false;
+          renderCart();
+        }
+      } catch (err) {
+        errorAlert.innerText = 'Connection error. Please try again or call +501 636-2275.';
+        errorAlert.style.display = 'block';
+        submitBtn.disabled = false;
+        renderCart();
+      }
+    });
+
+    // Done button handler
+    document.getElementById('drawer-done-btn')?.addEventListener('click', () => {
+      window.closePickupDrawer();
+      setTimeout(() => {
+        cartView.style.display = 'block';
+        successView.style.display = 'none';
+      }, 300);
+    });
+
+    // Initialize
+    updateBadges();
+    updatePickerState(true);
+  })();
+</script>

@@ -1,0 +1,949 @@
+---
+import { isAuthenticated, getSessionUser } from '../../lib/auth';
+import { getMenuCategories, getSettings } from '../../db/client';
+
+if (!isAuthenticated(Astro.cookies)) {
+  return Astro.redirect('/admin/login');
+}
+
+const currentUser = getSessionUser(Astro.cookies);
+const categories = await getMenuCategories();
+const settings = await getSettings();
+
+// Flatten items for easy searching
+const allItems = categories.flatMap(cat =>
+  cat.items.map(item => ({
+    ...item,
+    category_id: cat.id,
+    category_name: cat.name,
+    numeric_price: parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0,
+  }))
+);
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Sal y Limón | Point of Sale (POS)</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #151312;
+        color: #f4eee4;
+        font-family: "DM Sans", sans-serif;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      a { color: inherit; text-decoration: none; }
+
+      /* Top Header */
+      .pos-header {
+        background: #1e1b1a;
+        border-bottom: 1px solid #332f2c;
+        height: 60px;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .pos-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .pos-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+      }
+      .pos-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.15rem;
+        font-weight: 600;
+      }
+      .pos-meta {
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        color: #8b8379;
+        text-transform: uppercase;
+      }
+
+      .table-selector-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .table-select {
+        background: #2b2725;
+        border: 1px solid #47413d;
+        color: #f5c97a;
+        font-family: "DM Mono", monospace;
+        font-size: 0.8rem;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      .pos-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .header-btn {
+        background: #2b2725;
+        border: 1px solid #47413d;
+        color: #d4cbbe;
+        font-family: "DM Mono", monospace;
+        font-size: 0.68rem;
+        padding: 7px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        transition: all 0.2s;
+      }
+      .header-btn:hover { background: #bc3c2d; color: #fff; border-color: #bc3c2d; }
+
+      /* Main Split Layout */
+      .pos-body {
+        display: flex;
+        flex: 1;
+        height: calc(100vh - 60px);
+        overflow: hidden;
+      }
+
+      /* Left Side: Catalog */
+      .catalog-side {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #191716;
+        border-right: 1px solid #332f2c;
+        overflow: hidden;
+      }
+
+      /* Category pills & search */
+      .catalog-controls {
+        background: #1e1b1a;
+        padding: 12px 16px;
+        border-bottom: 1px solid #332f2c;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .search-box {
+        flex: 1;
+        min-width: 200px;
+        background: #151312;
+        border: 1px solid #3d3835;
+        border-radius: 6px;
+        padding: 8px 12px;
+        color: #f4eee4;
+        font-size: 0.85rem;
+      }
+      .search-box:focus { outline: none; border-color: #bc3c2d; }
+
+      .cat-scroll {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+      }
+      .cat-scroll::-webkit-scrollbar { display: none; }
+      .cat-tab {
+        background: #2b2725;
+        border: 1px solid transparent;
+        color: #8b8379;
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        white-space: nowrap;
+        text-transform: uppercase;
+        transition: all 0.2s;
+      }
+      .cat-tab.active {
+        background: #bc3c2d;
+        color: #fff;
+        font-weight: 500;
+      }
+
+      /* Dishes Grid */
+      .dishes-grid {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 14px;
+        align-content: flex-start;
+      }
+      .dish-card {
+        background: #24211f;
+        border: 1px solid #383431;
+        border-radius: 8px;
+        padding: 14px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 125px;
+        user-select: none;
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      .dish-card:hover {
+        transform: translateY(-2px);
+        border-color: #bc3c2d;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      }
+      .dish-card:active {
+        transform: scale(0.97);
+      }
+      .dish-card-title {
+        font-family: "Playfair Display", serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        line-height: 1.3;
+      }
+      .dish-card-desc {
+        color: #8b8379;
+        font-size: 0.72rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .dish-card-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        border-top: 1px solid #2f2b29;
+        padding-top: 8px;
+      }
+      .dish-card-price {
+        font-family: "DM Mono", monospace;
+        font-size: 0.88rem;
+        color: #bc3c2d;
+        font-weight: 600;
+      }
+      .dish-card-badge {
+        font-family: "DM Mono", monospace;
+        font-size: 0.55rem;
+        background: rgba(188, 60, 45, 0.15);
+        color: #e67e73;
+        padding: 2px 6px;
+        border-radius: 3px;
+        text-transform: uppercase;
+      }
+
+      /* Right Side: Ticket & Order Panel */
+      .ticket-side {
+        width: 380px;
+        background: #1e1b1a;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        flex-shrink: 0;
+      }
+
+      .ticket-header {
+        padding: 14px 18px;
+        border-bottom: 1px solid #332f2c;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .ticket-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.1rem;
+      }
+      .ticket-clear-btn {
+        background: none;
+        border: none;
+        color: #bc3c2d;
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        cursor: pointer;
+        text-transform: uppercase;
+      }
+
+      /* Ticket Items List */
+      .ticket-items {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 16px;
+      }
+      .ticket-empty {
+        text-align: center;
+        color: #69645d;
+        padding: 60px 20px;
+        font-size: 0.85rem;
+      }
+      .ticket-item {
+        background: #24211f;
+        border: 1px solid #332f2c;
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+      }
+      .ticket-item-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .ticket-item-name {
+        font-weight: 500;
+        font-size: 0.88rem;
+      }
+      .ticket-item-total {
+        font-family: "DM Mono", monospace;
+        font-size: 0.85rem;
+        color: #f4eee4;
+      }
+      .ticket-item-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+      }
+      .qty-control {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .qty-btn {
+        width: 26px;
+        height: 26px;
+        background: #332f2c;
+        border: 1px solid #4a4541;
+        color: #f4eee4;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+      .qty-btn:hover { background: #bc3c2d; }
+      .qty-val {
+        font-family: "DM Mono", monospace;
+        font-size: 0.82rem;
+        min-width: 20px;
+        text-align: center;
+      }
+      .item-remove {
+        background: none;
+        border: none;
+        color: #8b8379;
+        cursor: pointer;
+        font-size: 0.8rem;
+        padding: 4px 6px;
+      }
+      .item-remove:hover { color: #bc3c2d; }
+
+      /* Summary Box */
+      .ticket-summary {
+        background: #171514;
+        border-top: 1px solid #332f2c;
+        padding: 14px 18px;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: #8b8379;
+        margin-bottom: 6px;
+        font-family: "DM Mono", monospace;
+      }
+      .summary-total {
+        border-top: 1px solid #332f2c;
+        padding-top: 10px;
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+      .total-label {
+        font-family: "Playfair Display", serif;
+        font-size: 1.15rem;
+        color: #f4eee4;
+      }
+      .total-amount {
+        font-family: "DM Mono", monospace;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #25d366;
+      }
+      .total-usd {
+        font-family: "DM Mono", monospace;
+        font-size: 0.72rem;
+        color: #8b8379;
+        text-align: right;
+        margin-top: 2px;
+      }
+
+      /* Payment Actions */
+      .payment-actions {
+        padding: 14px 18px 18px;
+        background: #171514;
+        border-top: 1px solid #292523;
+      }
+      .pay-methods {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .method-btn {
+        background: #24211f;
+        border: 1px solid #383431;
+        color: #aaa197;
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        padding: 8px 4px;
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: uppercase;
+        text-align: center;
+      }
+      .method-btn.active {
+        background: #bc3c2d;
+        color: #fff;
+        border-color: #bc3c2d;
+      }
+
+      .btn-charge {
+        width: 100%;
+        background: #25d366;
+        color: #111;
+        border: none;
+        border-radius: 6px;
+        padding: 15px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn-charge:hover { background: #2fe673; }
+      .btn-charge:disabled { background: #383431; color: #69645d; cursor: not-allowed; }
+
+      /* Receipt Modal for Printing */
+      .receipt-modal {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.8);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+      }
+      .receipt-modal.active { display: flex; }
+      .receipt-card {
+        background: #fff;
+        color: #000;
+        font-family: "Courier New", Courier, monospace;
+        width: 340px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 24px 20px;
+        border-radius: 6px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      }
+      .receipt-header {
+        text-align: center;
+        margin-bottom: 16px;
+        border-bottom: 1px dashed #000;
+        padding-bottom: 12px;
+      }
+      .receipt-logo { max-width: 60px; filter: grayscale(1); margin-bottom: 6px; }
+      .receipt-title { font-size: 1.1rem; font-weight: bold; }
+      .receipt-info { font-size: 0.72rem; line-height: 1.4; }
+
+      .receipt-items-table {
+        width: 100%;
+        font-size: 0.78rem;
+        margin-bottom: 14px;
+        border-bottom: 1px dashed #000;
+        padding-bottom: 10px;
+      }
+      .receipt-items-table td { padding: 4px 0; }
+      .receipt-totals {
+        font-size: 0.8rem;
+        margin-bottom: 16px;
+        line-height: 1.5;
+      }
+      .receipt-totals-row { display: flex; justify-content: space-between; }
+      .receipt-grand { font-size: 1rem; font-weight: bold; border-top: 1px solid #000; padding-top: 6px; margin-top: 6px; }
+      .receipt-footer {
+        text-align: center;
+        font-size: 0.72rem;
+        border-top: 1px dashed #000;
+        padding-top: 10px;
+      }
+      .receipt-modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .btn-print {
+        flex: 1;
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 10px;
+        font-family: "DM Mono", monospace;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .btn-close-receipt {
+        background: #ccc;
+        border: none;
+        padding: 10px 14px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      /* Print Styles for thermal rolls */
+      @media print {
+        body * { visibility: hidden; }
+        .receipt-card, .receipt-card * { visibility: visible; }
+        .receipt-card {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100% !important;
+          box-shadow: none;
+          padding: 0;
+        }
+        .receipt-modal-actions { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top Header -->
+    <header class="pos-header">
+      <div class="pos-brand">
+        <img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" class="pos-logo" />
+        <div>
+          <h1 class="pos-title">Sal y Limón POS</h1>
+        </div>
+      </div>
+
+      <div class="table-selector-wrap">
+        <label for="table-select" class="pos-meta">Serving:</label>
+        <select id="table-select" class="table-select">
+          <option value="Takeout">Takeout / To-Go</option>
+          <option value="Bar">Bar Counter</option>
+          <option value="Table 1">Table 1</option>
+          <option value="Table 2">Table 2</option>
+          <option value="Table 3">Table 3</option>
+          <option value="Table 4">Table 4</option>
+          <option value="Table 5">Table 5</option>
+          <option value="Table 6">Table 6</option>
+          <option value="Table 7">Table 7</option>
+          <option value="Patio 1">Patio 1</option>
+          <option value="Patio 2">Patio 2</option>
+        </select>
+      </div>
+
+      <div class="pos-actions">
+        {currentUser && (
+          <span style="font-family:'DM Mono',monospace; font-size:0.65rem; color:#f5c97a; background:rgba(255,255,255,0.06); padding:6px 12px; border-radius:14px; border:1px solid #383431;">
+            👤 {currentUser.username} ({currentUser.role})
+          </span>
+        )}
+        <a href="/admin" class="header-btn">← Admin Dashboard</a>
+        <button class="header-btn" onclick="openSalesHistory()">Today's Sales</button>
+      </div>
+    </header>
+
+    <!-- Main Split Body -->
+    <div class="pos-body">
+      <!-- Left: Dishes Catalog -->
+      <section class="catalog-side">
+        <div class="catalog-controls">
+          <input
+            type="text"
+            id="dish-search"
+            class="search-box"
+            placeholder="🔍 Search tacos, ceviche, drinks..."
+          />
+          <div class="cat-scroll">
+            <button class="cat-tab active" data-cat="all">All Items</button>
+            {categories.map(c => (
+              <button class="cat-tab" data-cat={c.id}>{c.name}</button>
+            ))}
+          </div>
+        </div>
+
+        <div class="dishes-grid" id="dishes-container">
+          {allItems.map(item => (
+            <div
+              class="dish-card"
+              data-cat={item.category_id}
+              data-name={item.name.toLowerCase()}
+              onclick={`addToOrder('${item.name.replace(/'/g, "\\'")}', '${item.price}', ${item.numeric_price})`}
+            >
+              <div>
+                <div class="dish-card-title">{item.name}</div>
+                <div class="dish-card-desc">{item.detail}</div>
+              </div>
+              <div class="dish-card-bottom">
+                <span class="dish-card-price">{item.price}</span>
+                {item.badge && <span class="dish-card-badge">{item.badge}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Right: Order Ticket -->
+      <aside class="ticket-side">
+        <div class="ticket-header">
+          <span class="ticket-title" id="ticket-table-label">Takeout Order</span>
+          <button class="ticket-clear-btn" onclick="clearTicket()">Clear</button>
+        </div>
+
+        <div class="ticket-items" id="ticket-items-container">
+          <div class="ticket-empty">Tap any item on the menu to begin this order</div>
+        </div>
+
+        <div class="ticket-summary">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="sum-subtotal">$0.00 BZD</span>
+          </div>
+          <div class="summary-row">
+            <span>GST Tax (12.5%)</span>
+            <span id="sum-tax">$0.00 BZD</span>
+          </div>
+          <div class="summary-total">
+            <span class="total-label">Total</span>
+            <span class="total-amount" id="sum-total">$0.00</span>
+          </div>
+          <div class="total-usd" id="sum-total-usd">≈ $0.00 USD (2:1 peg)</div>
+        </div>
+
+        <div class="payment-actions">
+          <div class="pay-methods">
+            <button class="method-btn active" data-method="cash_bzd" onclick="setPaymentMethod('cash_bzd', this)">Cash BZD</button>
+            <button class="method-btn" data-method="cash_usd" onclick="setPaymentMethod('cash_usd', this)">Cash USD</button>
+            <button class="method-btn" data-method="card" onclick="setPaymentMethod('card', this)">Card</button>
+            <button class="method-btn" data-method="transfer" onclick="setPaymentMethod('transfer', this)">Transfer</button>
+            <button class="method-btn" data-method="digiwallet" onclick="setPaymentMethod('digiwallet', this)">DigiWallet</button>
+          </div>
+          <button class="btn-charge" id="charge-btn" onclick="submitOrder()" disabled>
+            Charge $0.00 BZD
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Receipt Print Modal -->
+    <div class="receipt-modal" id="receipt-modal">
+      <div class="receipt-card">
+        <div class="receipt-header">
+          <img src="/sal-y-limon-logo.jpg" alt="Logo" class="receipt-logo" />
+          <div class="receipt-title">SAL Y LIMÓN</div>
+          <div class="receipt-info">
+            San Narciso Village, Belize<br />
+            Tel: +501 636-2275<br />
+            <span id="rec-datetime"></span><br />
+            Order <span id="rec-orderno"></span> • <span id="rec-table"></span>
+          </div>
+        </div>
+
+        <table class="receipt-items-table">
+          <tbody id="rec-items-body"></tbody>
+        </table>
+
+        <div class="receipt-totals">
+          <div class="receipt-totals-row">
+            <span>Subtotal:</span>
+            <span id="rec-subtotal"></span>
+          </div>
+          <div class="receipt-totals-row">
+            <span>GST (12.5%):</span>
+            <span id="rec-tax"></span>
+          </div>
+          <div class="receipt-totals-row receipt-grand">
+            <span>TOTAL BZD:</span>
+            <span id="rec-total-bzd"></span>
+          </div>
+          <div class="receipt-totals-row" style="color:#666; font-size:0.75rem;">
+            <span>TOTAL USD:</span>
+            <span id="rec-total-usd"></span>
+          </div>
+          <div class="receipt-totals-row" style="margin-top:4px;">
+            <span>Payment:</span>
+            <span id="rec-method"></span>
+          </div>
+        </div>
+
+        <div class="receipt-footer">
+          ¡Muchas Gracias por su Visita!<br />
+          Come hungry. Leave happy.
+        </div>
+
+        <div class="receipt-modal-actions">
+          <button class="btn-print" onclick="window.print()">🖨️ Print Receipt</button>
+          <button class="btn-close-receipt" onclick="closeReceiptModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client-side POS Engine -->
+    <script is:inline>
+      let order = [];
+      let paymentMethod = 'cash_bzd';
+      let selectedTable = 'Takeout';
+
+      const tableSelect = document.getElementById('table-select');
+      tableSelect.addEventListener('change', (e) => {
+        selectedTable = e.target.value;
+        document.getElementById('ticket-table-label').innerText = `${selectedTable} Order`;
+      });
+
+      // Add to Order
+      window.addToOrder = function(name, priceStr, numericPrice) {
+        const existing = order.find(i => i.name === name);
+        if (existing) {
+          existing.quantity++;
+        } else {
+          order.push({
+            name,
+            price: priceStr,
+            numericPrice: numericPrice || 0,
+            quantity: 1,
+            notes: ''
+          });
+        }
+        renderTicket();
+      };
+
+      // Quantity adjustments
+      window.changeQty = function(name, delta) {
+        const item = order.find(i => i.name === name);
+        if (!item) return;
+        item.quantity += delta;
+        if (item.quantity <= 0) {
+          order = order.filter(i => i.name !== name);
+        }
+        renderTicket();
+      };
+
+      // Remove single item
+      window.removeItem = function(name) {
+        order = order.filter(i => i.name !== name);
+        renderTicket();
+      };
+
+      // Clear ticket
+      window.clearTicket = function() {
+        if (order.length === 0) return;
+        if (confirm('Clear the current order?')) {
+          order = [];
+          renderTicket();
+        }
+      };
+
+      // Payment method selection
+      window.setPaymentMethod = function(method, btn) {
+        paymentMethod = method;
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+
+      // Render Ticket Items & Calculations
+      function renderTicket() {
+        const container = document.getElementById('ticket-items-container');
+        const chargeBtn = document.getElementById('charge-btn');
+
+        if (order.length === 0) {
+          container.innerHTML = '<div class="ticket-empty">Tap any item on the menu to begin this order</div>';
+          document.getElementById('sum-subtotal').innerText = '$0.00 BZD';
+          document.getElementById('sum-tax').innerText = '$0.00 BZD';
+          document.getElementById('sum-total').innerText = '$0.00';
+          document.getElementById('sum-total-usd').innerText = '≈ $0.00 USD (2:1 peg)';
+          chargeBtn.disabled = true;
+          chargeBtn.innerText = 'Charge $0.00 BZD';
+          return;
+        }
+
+        let subtotal = 0;
+        let html = '';
+
+        order.forEach(item => {
+          const itemTotal = item.numericPrice * item.quantity;
+          subtotal += itemTotal;
+
+          html += `
+            <div class="ticket-item">
+              <div class="ticket-item-top">
+                <span class="ticket-item-name">${item.name}</span>
+                <span class="ticket-item-total">$${itemTotal.toFixed(2)}</span>
+              </div>
+              <div class="ticket-item-bottom">
+                <div class="qty-control">
+                  <button class="qty-btn" onclick="changeQty('${item.name.replace(/'/g, "\\'")}', -1)">-</button>
+                  <span class="qty-val">${item.quantity}</span>
+                  <button class="qty-btn" onclick="changeQty('${item.name.replace(/'/g, "\\'")}', 1)">+</button>
+                </div>
+                <button class="item-remove" onclick="removeItem('${item.name.replace(/'/g, "\\'")}')">✕ Remove</button>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+
+        // Taxes & Totals (12.5% Belize GST included/calculated)
+        const tax = subtotal * 0.125;
+        const total = subtotal + tax;
+        const totalUsd = total / 2;
+
+        document.getElementById('sum-subtotal').innerText = `$${subtotal.toFixed(2)} BZD`;
+        document.getElementById('sum-tax').innerText = `$${tax.toFixed(2)} BZD`;
+        document.getElementById('sum-total').innerText = `$${total.toFixed(2)}`;
+        document.getElementById('sum-total-usd').innerText = `≈ $${totalUsd.toFixed(2)} USD (2:1 peg)`;
+
+        chargeBtn.disabled = false;
+        chargeBtn.innerText = `Charge $${total.toFixed(2)} BZD`;
+      }
+
+      // Submit Order & Print
+      window.submitOrder = async function() {
+        if (order.length === 0) return;
+
+        const subtotal = order.reduce((s, i) => s + (i.numericPrice * i.quantity), 0);
+        const tax = subtotal * 0.125;
+        const total = subtotal + tax;
+
+        const chargeBtn = document.getElementById('charge-btn');
+        chargeBtn.disabled = true;
+        chargeBtn.innerText = 'Processing...';
+
+        try {
+          const res = await fetch('/api/pos/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              table_number: selectedTable,
+              customer_name: 'Walk-in',
+              payment_method: paymentMethod,
+              items: order,
+              subtotal,
+              tax,
+              tip: 0,
+              total,
+              amount_paid: total,
+              change_given: 0,
+            }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            showReceipt(data.order);
+            order = [];
+            renderTicket();
+          } else {
+            alert('Failed to save order: ' + (data.error || 'Server error'));
+            chargeBtn.disabled = false;
+            renderTicket();
+          }
+        } catch (err) {
+          alert('Error communicating with server');
+          chargeBtn.disabled = false;
+          renderTicket();
+        }
+      };
+
+      // Show Receipt Modal
+      function showReceipt(savedOrder) {
+        document.getElementById('rec-datetime').innerText = new Date(savedOrder.created_at || Date.now()).toLocaleString();
+        document.getElementById('rec-orderno').innerText = `#${savedOrder.order_number || Math.floor(Math.random() * 9000 + 1000)}`;
+        document.getElementById('rec-table').innerText = savedOrder.table_number;
+        document.getElementById('rec-subtotal').innerText = `$${Number(savedOrder.subtotal).toFixed(2)} BZD`;
+        document.getElementById('rec-tax').innerText = `$${Number(savedOrder.tax).toFixed(2)} BZD`;
+        document.getElementById('rec-total-bzd').innerText = `$${Number(savedOrder.total).toFixed(2)} BZD`;
+        document.getElementById('rec-total-usd').innerText = `$${(Number(savedOrder.total) / 2).toFixed(2)} USD`;
+        document.getElementById('rec-method').innerText = savedOrder.payment_method.toUpperCase().replace('_', ' ');
+
+        const tbody = document.getElementById('rec-items-body');
+        tbody.innerHTML = savedOrder.items.map(i => `
+          <tr>
+            <td>${i.quantity}x ${i.item_name}</td>
+            <td style="text-align:right;">$${Number(i.subtotal).toFixed(2)}</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('receipt-modal').classList.add('active');
+      }
+
+      window.closeReceiptModal = function() {
+        document.getElementById('receipt-modal').classList.remove('active');
+      };
+
+      window.openSalesHistory = function() {
+        window.location.href = '/admin#sales';
+      };
+
+      // Category filter buttons
+      document.querySelectorAll('.cat-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          const cat = tab.getAttribute('data-cat');
+          const cards = document.querySelectorAll('.dish-card');
+
+          cards.forEach(card => {
+            if (cat === 'all' || card.getAttribute('data-cat') === cat) {
+              card.style.display = 'flex';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      });
+
+      // Search input filter
+      document.getElementById('dish-search').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.dish-card');
+
+        cards.forEach(card => {
+          const name = card.getAttribute('data-name') || '';
+          if (!query || name.includes(query)) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
