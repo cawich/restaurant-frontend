@@ -1,0 +1,315 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout
+  title="Visit | Sal y Limón"
+  description="Find Sal y Limón — directions, hours, and Google Maps for our restaurant in San Narciso Village, Belize."
+  activePage="visit"
+>
+  <main>
+    <!-- HERO -->
+    <section class="visit-hero">
+      <div class="visit-hero-inner">
+        <p class="eyebrow"><span></span> Cómo encontrarnos</p>
+        <h1>Find your way<br /><em>to our table.</em></h1>
+        <p class="visit-hero-sub">
+          We are in San Narciso Village along the Philip Goldson Highway,
+          in front of Escuela Secundaria Técnica México (ESTM).
+        </p>
+        <div class="visit-actions">
+          <a
+            class="button button-dark"
+            href="https://www.google.com/maps/dir/?api=1&destination=18.30349,-88.50894"
+            target="_blank" rel="noopener noreferrer" id="get-directions-btn"
+          >
+            Get Directions <span aria-hidden="true">↗</span>
+          </a>
+          <a
+            class="text-link"
+            href="https://www.google.com/maps/search/?api=1&query=18.30349,-88.50894"
+            target="_blank" rel="noopener noreferrer" id="open-maps-btn"
+          >
+            Open in Google Maps <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- DETAILS + MAP -->
+    <section class="visit-content">
+      <div class="visit-details">
+        <div class="detail-block">
+          <span class="detail-title">Address</span>
+          <p>
+            Philip Goldson Highway, 7th Block<br />
+            San Narciso Village, Corozal District, Belize<br />
+            <em>(In front of Escuela Secundaria Técnica México)</em>
+          </p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-title">Navigation Tip</span>
+          <p>
+            Turn into San Narciso Village from Philip Goldson Highway.
+            We are at the corner of the 7th block on the paved road, directly facing the high school.
+          </p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-title">Hours</span>
+          <p>
+            Tuesday – Sunday: 11:00 AM – 10:00 PM<br />
+            Monday: Closed
+          </p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-title">Reservations</span>
+          <p>
+            <a href="tel:+5016362275">📞 +501 636-2275</a><br />
+            <a
+              href="https://wa.me/5016362275?text=Hello%20Sal%20y%20Lim%C3%B3n,%20I%20would%20like%20to%20reserve%20a%20table"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="visit-wa-link"
+            >
+              💬 WhatsApp: Message Us ↗
+            </a><br />
+            <em>Reservations recommended on Friday &amp; Saturday evenings.</em>
+          </p>
+        </div>
+      </div>
+
+      <!-- MAP -->
+      <div class="map-card">
+        <iframe
+          id="restaurant-google-map"
+          title="Google Maps Location for Sal y Limón"
+          src="https://maps.google.com/maps?q=18.30349,-88.50894&t=&z=16&ie=UTF8&iwloc=B&output=embed"
+          loading="lazy"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+        <div class="map-overlay-badge">
+          <span class="map-badge-dot"></span>
+          <div>
+            <strong>Sal y Limón</strong>
+            <small>Philip Goldson Hwy, San Narciso</small>
+          </div>
+          <a
+            href="https://www.google.com/maps/dir/?api=1&destination=18.30349,-88.50894"
+            target="_blank" rel="noopener noreferrer"
+            class="map-badge-link"
+          >Navigate ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── GUEST AMENITIES & ESSENTIALS ── -->
+    <section class="visit-amenities" aria-label="Restaurant amenities and dining info">
+      <div class="amenities-inner">
+        <div class="amenity-item">
+          <span class="amenity-icon">🅿️</span>
+          <strong>Free On-Site Parking</strong>
+          <p>Easy, complimentary parking directly in front of the restaurant.</p>
+        </div>
+        <div class="amenity-item">
+          <span class="amenity-icon">🌴</span>
+          <strong>Covered &amp; Patio Dining</strong>
+          <p>Choose between shaded outdoor bistro tables or open dining.</p>
+        </div>
+        <div class="amenity-item">
+          <span class="amenity-icon">💳</span>
+          <strong>Payment Methods</strong>
+          <p>We accept Cash (BZD &amp; USD), Visa, and MasterCard.</p>
+        </div>
+        <div class="amenity-item">
+          <span class="amenity-icon">🎉</span>
+          <strong>Parties &amp; Takeout</strong>
+          <p>Family celebrations and takeout orders welcome anytime.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</Layout>
+
+<style>
+  /* ── VISIT HERO ── */
+  .visit-hero {
+    background: #f4eee4;
+    border-bottom: 1px solid #cfc5b9;
+    padding: 100px 5vw 90px;
+  }
+  .visit-hero-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .visit-hero-inner h1 { font-size: clamp(3rem, 6vw, 5.5rem); }
+  .visit-hero-inner .eyebrow { justify-content: center; }
+  .visit-hero-sub {
+    color: #69645d;
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: 24px auto 36px;
+    max-width: 480px;
+  }
+  .visit-actions {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ── DETAILS + MAP ── */
+  .visit-content {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 6vw;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 100px 5vw;
+    align-items: start;
+  }
+  .visit-details {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .detail-block {
+    border-left: 2px solid #bc3c2d;
+    padding-left: 18px;
+  }
+  .detail-title {
+    color: #bc3c2d;
+    display: block;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .detail-block p {
+    color: #242220;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .detail-block p em { color: #69645d; font-style: italic; }
+  .detail-block a { color: #bc3c2d; }
+
+  /* ── MAP ── */
+  .map-card {
+    position: relative;
+    border: 1px solid #cfc5b9;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.06);
+    overflow: hidden;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+  }
+  .map-card iframe {
+    border: none;
+    flex: 1;
+    min-height: 460px;
+    width: 100%;
+  }
+  .map-overlay-badge {
+    align-items: center;
+    background: rgba(36,34,32,0.95);
+    backdrop-filter: blur(8px);
+    bottom: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    color: #f4eee4;
+    display: flex;
+    gap: 14px;
+    left: 16px;
+    padding: 12px 18px;
+    position: absolute;
+    right: 16px;
+  }
+  .map-badge-dot {
+    background: #bc3c2d;
+    border-radius: 50%;
+    flex-shrink: 0;
+    height: 10px;
+    width: 10px;
+  }
+  .map-overlay-badge div {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+  .map-overlay-badge strong {
+    font-family: "Playfair Display", serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+  .map-overlay-badge small {
+    color: #aaa197;
+    font-family: "DM Mono", monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+  }
+  .map-badge-link {
+    background: #bc3c2d;
+    color: #f4eee4;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    padding: 7px 12px;
+    text-transform: uppercase;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+  }
+  .map-badge-link:hover { background: #d44737; }
+
+  .visit-wa-link {
+    color: #128c7e !important;
+    font-weight: 500;
+  }
+
+  /* ── AMENITIES ── */
+  .visit-amenities {
+    background: #ede6dc;
+    border-top: 1px solid #cfc5b9;
+    padding: 70px 5vw 80px;
+  }
+  .amenities-inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+  .amenity-item { text-align: left; }
+  .amenity-icon { font-size: 1.8rem; display: block; margin-bottom: 12px; }
+  .amenity-item strong {
+    display: block;
+    font-family: "Playfair Display", serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #242220;
+    margin-bottom: 6px;
+  }
+  .amenity-item p {
+    color: #69645d;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 800px) {
+    .visit-hero { padding: 70px 7vw 60px; }
+    .visit-hero-inner h1 { font-size: 3rem; }
+    .visit-content { grid-template-columns: 1fr; padding: 60px 7vw; }
+    .map-card { min-height: 380px; }
+    .map-card iframe { min-height: 330px; }
+    .map-overlay-badge { flex-direction: column; align-items: flex-start; gap: 10px; left: 12px; right: 12px; bottom: 12px; }
+    .amenities-inner { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  }
+
+  @media (max-width: 500px) {
+    .amenities-inner { grid-template-columns: 1fr; }
+  }
+</style>

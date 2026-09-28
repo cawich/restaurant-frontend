@@ -1,0 +1,514 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  activePage?: 'home' | 'menu' | 'visit';
+  showCta?: boolean;
+}
+const {
+  title,
+  description = "Sal y Limón is a bright Mexican kitchen serving generous food, cold drinks, and good times.",
+  activePage = 'home',
+  showCta = activePage === 'home',
+} = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- ── TOP ANNOUNCEMENT BAR ── -->
+    <aside class="top-announcement" aria-label="Restaurant announcement">
+      <div class="announcement-inner">
+        <span>📍 San Narciso Village, Corozal District, Belize</span>
+        <span class="announcement-sep">•</span>
+        <span>Open Tue – Sun: 11:00 AM – 10:00 PM</span>
+        <span class="announcement-sep">•</span>
+        <a
+          href="https://wa.me/5016362275?text=Hello%20Sal%20y%20Lim%C3%B3n,%20I%20would%20like%20to%20reserve%20a%20table"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="announcement-link"
+        >
+          💬 WhatsApp Booking: +501 636-2275
+        </a>
+      </div>
+    </aside>
+
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="Sal y Limón home">
+        <img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" />
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="/"      class={activePage === 'home'  ? 'active' : ''}>Home</a>
+        <a href="/menu"  class={activePage === 'menu'  ? 'active' : ''}>Menu</a>
+        <a href="/visit" class={activePage === 'visit' ? 'active' : ''}>Visit</a>
+      </nav>
+      <div class="header-actions">
+        <a
+          class="header-wa-btn"
+          href="https://wa.me/5016362275?text=Hello%20Sal%20y%20Lim%C3%B3n,%20I%20would%20like%20to%20reserve%20a%20table"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Chat on WhatsApp"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+            <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.98.58 3.86 1.68 5.48L2 22l4.77-1.74c1.55.97 3.36 1.48 5.27 1.48 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15c-1.68 0-3.32-.47-4.74-1.35l-.34-.21-2.82 1.03.88-2.73-.23-.37a8.12 8.12 0 0 1-1.36-4.61c0-4.5 3.66-8.16 8.16-8.16 2.18 0 4.23.85 5.77 2.39a8.1 8.1 0 0 1 2.39 5.77c0 4.5-3.66 8.16-8.15 8.16zm4.47-6.11c-.25-.12-1.46-.72-1.68-.8-.23-.09-.39-.13-.56.13-.17.25-.65.8-.8 1-.15.19-.3.21-.55.09-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.17-.25.25-.42.08-.17.04-.32-.02-.45-.06-.12-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.12.17 1.78 2.71 4.3 3.8 2.53 1.09 2.53.73 2.99.69.45-.04 1.46-.6 1.67-1.18.2-.58.2-1.07.14-1.18-.06-.11-.22-.18-.47-.3z"/>
+          </svg>
+          <span>WhatsApp</span>
+        </a>
+        <a class="header-booking" href="tel:+5016362275">
+          Book a table <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </header>
+
+    <slot />
+
+    {showCta && (
+      <section class="layout-reserve">
+        <p class="eyebrow" style="justify-content:center"><span></span> Tu mesa te espera</p>
+        <h2>Make a night<br /><em>of it.</em></h2>
+        <a class="button button-light" href="tel:+5016362275">
+          Book a table <span aria-hidden="true">↗</span>
+        </a>
+      </section>
+    )}
+
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <a class="wordmark" href="/"><img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" /></a>
+        <p>Mexican bistro &amp; day club</p>
+        
+        <!-- Google rating badge -->
+        <a
+          class="footer-rating-badge"
+          href="https://www.google.com/maps/search/?api=1&query=18.30349,-88.50894"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="View reviews on Google Maps"
+        >
+          <span class="rating-stars">★★★★★</span>
+          <span class="rating-text"><strong>4.9 / 5.0</strong> on Google Reviews ↗</span>
+        </a>
+
+        <div class="footer-dining-badges">
+          <span class="dining-pill">Walk-ins Welcome</span>
+          <span class="dining-pill">Covered &amp; Patio Dining</span>
+          <span class="dining-pill">Cash &amp; Cards</span>
+        </div>
+      </div>
+
+      <div>
+        <p class="footer-label">Find us</p>
+        <p>
+          Philip Goldson Highway<br />
+          7th block, San Narciso Village<br />
+          Corozal District, Belize<br />
+          <em>(Facing Escuela Secundaria Técnica México)</em>
+        </p>
+        <p class="footer-directions-link">
+          <a
+            href="https://www.google.com/maps/dir/?api=1&destination=18.30349,-88.50894"
+            target="_blank" rel="noopener noreferrer"
+          >Get Directions ↗</a>
+        </p>
+      </div>
+
+      <div>
+        <p class="footer-label">Reservations &amp; Contact</p>
+        <p>
+          <a href="tel:+5016362275">📞 +501 636-2275</a><br />
+          <a
+            href="https://wa.me/5016362275?text=Hello%20Sal%20y%20Lim%C3%B3n,%20I%20would%20like%20to%20reserve%20a%20table"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="footer-wa-link"
+          >
+            💬 Chat on WhatsApp
+          </a><br />
+          <span class="footer-note">Recommended for weekend dinner &amp; groups</span>
+        </p>
+      </div>
+
+      <div>
+        <p class="footer-label">Hours &amp; Pages</p>
+        <p>
+          <strong>Tue – Sun:</strong> 11am – 10pm<br />
+          <strong>Monday:</strong> Closed
+        </p>
+        <p class="footer-page-links">
+          <a href="/">Home</a> • <a href="/menu">Menu</a> • <a href="/visit">Visit</a>
+        </p>
+      </div>
+    </footer>
+
+    <!-- ── FLOATING WHATSAPP BUTTON ── -->
+    <a
+      href="https://wa.me/5016362275?text=Hello%20Sal%20y%20Lim%C3%B3n,%20I%20would%20like%20to%20reserve%20a%20table"
+      class="floating-whatsapp"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Chat with Sal y Limón on WhatsApp"
+      title="Reserve or message us on WhatsApp"
+    >
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.98.58 3.86 1.68 5.48L2 22l4.77-1.74c1.55.97 3.36 1.48 5.27 1.48 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15c-1.68 0-3.32-.47-4.74-1.35l-.34-.21-2.82 1.03.88-2.73-.23-.37a8.12 8.12 0 0 1-1.36-4.61c0-4.5 3.66-8.16 8.16-8.16 2.18 0 4.23.85 5.77 2.39a8.1 8.1 0 0 1 2.39 5.77c0 4.5-3.66 8.16-8.15 8.16zm4.47-6.11c-.25-.12-1.46-.72-1.68-.8-.23-.09-.39-.13-.56.13-.17.25-.65.8-.8 1-.15.19-.3.21-.55.09-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.17-.25.25-.42.08-.17.04-.32-.02-.45-.06-.12-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.12.17 1.78 2.71 4.3 3.8 2.53 1.09 2.53.73 2.99.69.45-.04 1.46-.6 1.67-1.18.2-.58.2-1.07.14-1.18-.06-.11-.22-.18-.47-.3z"/>
+      </svg>
+      <span class="floating-tooltip">Reserve on WhatsApp</span>
+    </a>
+  </body>
+</html>
+
+<style is:global>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: #f4eee4;
+    color: #242220;
+    font-family: "DM Sans", sans-serif;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── TOP ANNOUNCEMENT ── */
+  .top-announcement {
+    background: #242220;
+    color: #e6dfd5;
+    font-family: "DM Mono", monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    padding: 7px 5vw;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .announcement-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .announcement-sep { opacity: 0.4; }
+  .announcement-link {
+    color: #f4eee4;
+    transition: color 0.2s ease;
+    font-weight: 500;
+  }
+  .announcement-link:hover { color: #25d366; }
+
+  /* ── HEADER ── */
+  .site-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 24px 5vw;
+  }
+  .wordmark { display: block; }
+  .wordmark img {
+    border-radius: 999px;
+    display: block;
+    filter: saturate(0.92) contrast(0.9);
+    height: auto;
+    mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    mix-blend-mode: multiply;
+    max-width: 150px;
+    object-fit: contain;
+    opacity: 0.86;
+    transition: opacity 0.25s ease, filter 0.25s ease;
+  }
+  .wordmark:hover img { filter: saturate(1) contrast(1); opacity: 1; }
+
+  nav {
+    display: flex;
+    gap: 34px;
+    margin-left: 6%;
+  }
+  nav a,
+  .header-booking,
+  .eyebrow,
+  .footer-label {
+    font-family: "DM Mono", monospace;
+    font-size: 0.67rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  nav a {
+    color: #69645d;
+    transition: color 0.2s ease;
+    padding-bottom: 3px;
+  }
+  nav a:hover,
+  nav a.active { color: #bc3c2d; border-bottom: 1px solid #bc3c2d; }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .header-wa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #128c7e;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(18, 140, 126, 0.35);
+    background: rgba(18, 140, 126, 0.05);
+    transition: all 0.2s ease;
+  }
+  .header-wa-btn:hover {
+    background: #128c7e;
+    color: #fff;
+    border-color: #128c7e;
+  }
+  .header-booking {
+    border-bottom: 1px solid #242220;
+    padding-bottom: 5px;
+  }
+  .header-booking span { margin-left: 9px; }
+
+  /* ── SHARED COMPONENTS ── */
+  .eyebrow {
+    align-items: center;
+    color: #bc3c2d;
+    display: flex;
+    gap: 10px;
+    margin: 0 0 28px;
+  }
+  .eyebrow span {
+    background: #bc3c2d;
+    display: inline-block;
+    height: 7px;
+    width: 7px;
+  }
+  h1, h2 {
+    font-family: "Playfair Display", serif;
+    font-size: clamp(3.6rem, 6vw, 6.9rem);
+    font-weight: 500;
+    letter-spacing: -0.065em;
+    line-height: 0.91;
+    margin: 0;
+  }
+  h1 em, h2 em { color: #bc3c2d; font-weight: 500; }
+  .button {
+    display: inline-flex;
+    align-items: center;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    padding: 16px 18px;
+    text-transform: uppercase;
+  }
+  .button span { margin-left: 9px; }
+  .button-dark  { background: #242220; color: #f4eee4; }
+  .button-light { background: #f4eee4; color: #242220; }
+  .text-link {
+    border-bottom: 1px solid #aaa197;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    padding-bottom: 5px;
+    text-transform: uppercase;
+  }
+  .text-link span { color: #bc3c2d; margin-left: 8px; }
+
+  /* ── MARQUEE ── */
+  .marquee {
+    align-items: center;
+    background: #bc3c2d;
+    color: #f4eee4;
+    display: flex;
+    gap: 35px;
+    justify-content: center;
+    overflow: hidden;
+    padding: 16px;
+    white-space: nowrap;
+  }
+  .marquee span { font-family: "Playfair Display", serif; font-size: 1.08rem; font-style: italic; }
+  .marquee b   { font-size: 1rem; font-weight: 400; }
+
+  /* ── FOOTER ── */
+  .site-footer {
+    display: grid;
+    gap: 30px;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    margin: 0 auto;
+    max-width: 1320px;
+    padding: 72px 5vw 80px;
+    border-top: 1px solid #e0d7cb;
+  }
+  .site-footer p { font-size: 0.8rem; line-height: 1.7; margin: 12px 0 0; }
+  .site-footer .footer-brand p,
+  .footer-label { color: #8b8379; }
+  .footer-label { color: #bc3c2d; margin: 0; }
+  .site-footer a:hover { color: #bc3c2d; }
+  .footer-directions-link { margin-top: 8px !important; }
+  .footer-directions-link a {
+    color: #bc3c2d;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .footer-wa-link {
+    color: #128c7e !important;
+    font-weight: 500;
+  }
+  .footer-note {
+    display: inline-block;
+    color: #8b8379;
+    font-size: 0.72rem;
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .footer-page-links {
+    color: #69645d;
+    font-family: "DM Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    margin-top: 10px !important;
+  }
+  .footer-page-links a { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* Google Rating Badge */
+  .footer-rating-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 6px 12px;
+    background: #ede6dc;
+    border-radius: 6px;
+  }
+  .rating-stars { color: #f5a623; letter-spacing: 2px; font-size: 0.85rem; }
+  .rating-text { font-size: 0.75rem; color: #4a453e; }
+  .rating-text strong { color: #242220; }
+
+  /* Dining Pills */
+  .footer-dining-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+  .dining-pill {
+    background: transparent;
+    border: 1px solid #d4cbbe;
+    color: #69645d;
+    border-radius: 999px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+    padding: 3px 9px;
+    text-transform: uppercase;
+  }
+
+  /* ── FLOATING WHATSAPP BUTTON ── */
+  .floating-whatsapp {
+    position: fixed;
+    bottom: 26px;
+    right: 26px;
+    width: 54px;
+    height: 54px;
+    background: #25d366;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.45), 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
+  }
+  .floating-whatsapp:hover {
+    transform: scale(1.1) translateY(-2px);
+    box-shadow: 0 12px 30px rgba(37, 211, 102, 0.6);
+  }
+  .floating-tooltip {
+    position: absolute;
+    right: 64px;
+    background: #242220;
+    color: #f4eee4;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(8px);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .floating-whatsapp:hover .floating-tooltip {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .top-announcement { font-size: 0.58rem; padding: 6px 12px; }
+    .announcement-inner { gap: 8px; }
+    .site-header { padding-top: 18px; padding-bottom: 18px; }
+    nav { gap: 16px; margin-left: 2%; }
+    nav a { font-size: 0.6rem; }
+    .header-actions { gap: 10px; }
+    .header-wa-btn { display: none; } /* keep header tidy on small mobile, floating wa exists */
+    .header-booking { font-size: 0.58rem; }
+    .site-footer {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      padding: 50px 7vw 60px;
+    }
+    .footer-brand { margin-bottom: 5px; }
+    .layout-reserve h2 { font-size: 3.5rem; }
+    .floating-whatsapp { bottom: 20px; right: 20px; width: 48px; height: 48px; }
+    .floating-tooltip { display: none; }
+  }
+
+  /* ── SHARED RESERVE CTA ── */
+  .layout-reserve {
+    background: #242220;
+    color: #f4eee4;
+    padding: 120px 5vw 130px;
+    text-align: center;
+  }
+  .layout-reserve h2 {
+    font-size: clamp(4rem, 8vw, 8rem);
+    margin-bottom: 36px;
+  }
+  .layout-reserve .button-light {
+    background: #f4eee4;
+    color: #242220;
+    display: inline-flex;
+    align-items: center;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    padding: 16px 20px;
+    text-transform: uppercase;
+    transition: background 0.2s ease;
+  }
+  .layout-reserve .button-light:hover { background: #e8e0d6; }
+  .layout-reserve .button-light span { margin-left: 9px; }
+</style>

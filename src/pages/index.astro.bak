@@ -1,0 +1,1546 @@
+---
+const menuCategories = [
+	{
+		name: "Desayunos",
+		items: [
+			{ name: "Huevos con chaya", detail: "eggs, sauteed greens, beans, tortillas", price: "$12" },
+			{ name: "Huevos rancheros", detail: "eggs, ranchera salsa, beans, avocado", price: "$13" },
+			{ name: "Omelette", detail: "mushrooms, spinach, cheese, house salad", price: "$14" },
+			{ name: "Waffle sandwich", detail: "waffle, bacon, egg, maple", price: "$13" },
+		],
+	},
+	{
+		name: "Tacos",
+		items: [
+			{ name: "Tacos de birria", detail: "slow-braised beef, onion, cilantro, consomme", price: "$18" },
+			{ name: "Tacos al pastor", detail: "marinated pork, pineapple, onion, cilantro", price: "$16" },
+			{ name: "Tacos de camarón", detail: "shrimp, cabbage, crema, pico de gallo", price: "$17" },
+			{ name: "Quesabirria", detail: "melted cheese, birria, onion, cilantro", price: "$16" },
+		],
+	},
+	{
+		name: "Ceviches",
+		items: [
+			{ name: "Ceviche clásico", detail: "fresh catch, lime, onion, cilantro", price: "$17" },
+			{ name: "Ceviche de camarón", detail: "shrimp, tomato, cucumber, avocado", price: "$18" },
+			{ name: "Aguachile verde", detail: "shrimp, serrano, cucumber, lime", price: "$19" },
+		],
+	},
+	{
+		name: "Para compartir",
+		items: [
+			{ name: "Guacamole", detail: "avocado, pico de gallo, totopos", price: "$11" },
+			{ name: "Nachos", detail: "beans, cheese, jalapeño, crema, salsa", price: "$15" },
+			{ name: "Mariscos", detail: "fresh seafood, citrus, avocado, tostadas", price: "$20" },
+		],
+	},
+	{
+		name: "Postres & bebidas",
+		items: [
+			{ name: "Tres leches", detail: "house cake, whipped cream, seasonal fruit", price: "$9" },
+			{ name: "Churros", detail: "cinnamon sugar, chocolate dipping sauce", price: "$8" },
+			{ name: "Margarita clásica", detail: "tequila, lime, agave, salt", price: "$12" },
+			{ name: "Agua fresca", detail: "seasonal fruit, lime, a little sweetness", price: "$6" },
+		],
+	},
+];
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta
+			name="description"
+			content="Sal y Limón is a bright Mexican kitchen serving generous food, cold drinks, and good times."
+		/>
+		<meta name="generator" content={Astro.generator} />
+		<title>Sal y Limón | Mexican kitchen & bar</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin="anonymous"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<header class="site-header">
+			<a class="wordmark" href="/" aria-label="Sal y Limón home"
+				><img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" /></a
+			>
+			<nav aria-label="Main navigation">
+				<button class="nav-menu-btn" id="open-menu-btn" aria-haspopup="dialog" aria-label="Open menu book">Menu</button>
+				<a href="#story">Our story</a>
+				<a href="#visit">Visit</a>
+			</nav>
+			<a class="header-booking" href="tel:+5016362275"
+				>Book a table <span aria-hidden="true">↗</span></a
+			>
+		</header>
+
+		<main>
+			<section class="hero" aria-labelledby="hero-title">
+				<div class="hero-copy">
+					<p class="eyebrow">
+						<span></span> Mexican kitchen & bar
+					</p>
+					<h1 id="hero-title">
+						Bright food.<br /><em>Good times.</em>
+					</h1>
+					<p class="hero-intro">
+						Sal y Limón brings the color, flavor, and easygoing spirit of
+						Mexico to the table. Come hungry. Stay a while.
+					</p>
+					<div class="hero-actions">
+						<a class="button button-dark" href="#reserve"
+							>Reserve a table <span aria-hidden="true">↗</span
+							></a
+						>
+						<button class="text-link hero-menu-btn" id="hero-open-menu-btn" aria-haspopup="dialog"
+							>Explore the menu <span aria-hidden="true">↓</span
+							></button
+						>
+					</div>
+				</div>
+				<div class="hero-image-wrap">
+					<img
+						class="hero-image"
+						src="/restaurant-interior.jpg"
+						alt="Warmly lit tables inside Sal y Limón restaurant"
+					/>
+					<div class="image-note">
+						<span>01</span><span>Hecho con amor<br />since 2014</span>
+					</div>
+				</div>
+			</section>
+
+			<section class="marquee" aria-label="Sal y Limón highlights">
+				<span>Hecho fresco</span><b>✳</b><span>Agave & limón</span><b
+					>✳</b
+				><span>Long lunches</span><b>✳</b><span>Hecho fresco</span>
+			</section>
+
+			<!-- ───── MENU BOOK OVERLAY ───── -->
+			<div class="menu-overlay" id="menu-overlay" role="dialog" aria-modal="true" aria-label="Menu book" hidden>
+				<div class="menu-overlay-bg" id="menu-overlay-bg"></div>
+				<div class="book-scene">
+					<div class="book" id="menu-book">
+
+						<!-- COVER -->
+						<div class="book-page book-cover" id="book-cover">
+							<div class="page-front cover-front">
+								<div class="cover-spine"></div>
+								<div class="cover-inner">
+									<div class="cover-logo-wrap">
+										<img
+											src="/sal-y-limon-logo.jpg"
+											alt="Sal y Limón"
+											class="cover-logo"
+										/>
+									</div>
+									<p class="cover-eyebrow">✳ Todo el menú ✳</p>
+									<h2 class="cover-title">Sal y<br /><em>Limón</em></h2>
+									<p class="cover-subtitle">Mexican kitchen & bar — est. 2014</p>
+									<button class="cover-open-btn" id="cover-open-btn">Open menu <span>→</span></button>
+								</div>
+								<div class="cover-decoration">
+									<div class="deco-circle deco-1"></div>
+									<div class="deco-circle deco-2"></div>
+								</div>
+							</div>
+							<div class="page-back cover-back"></div>
+						</div>
+
+						<!-- CATEGORY PAGES -->
+						{menuCategories.map((category, i) => (
+							<div class={`book-page cat-page cat-page-${i}`} data-page={i + 1}>
+								<div class="page-front">
+									<div class="page-inner">
+										<div class="page-header">
+											<span class="page-num">{String(i + 1).padStart(2, '0')}</span>
+											<h3 class="page-category">{category.name}</h3>
+										</div>
+										<ul class="page-items">
+											{category.items.map((item) => (
+												<li class="page-item">
+													<div class="item-info">
+														<strong>{item.name}</strong>
+														<p>{item.detail}</p>
+													</div>
+													<span class="item-price">{item.price}</span>
+												</li>
+											))}
+										</ul>
+										<div class="page-footer-nav">
+											{i > 0 && <button class="pager pager-prev" data-dir="-1">← Prev</button>}
+											{i < menuCategories.length - 1 && <button class="pager pager-next" data-dir="1">Next →</button>}
+										</div>
+									</div>
+								</div>
+								<div class="page-back">
+									<div class="page-inner page-inner-back">
+										<div class="back-watermark">✳</div>
+									</div>
+								</div>
+							</div>
+						))}
+
+						<!-- BACK COVER -->
+						<div class="book-page book-back-cover">
+							<div class="page-front back-cover-front">
+								<div class="back-cover-inner">
+									<p class="back-cover-text">Hecho con amor</p>
+									<p class="back-cover-sub">since 2014</p>
+									<a href="tel:+5016362275" class="back-cover-cta">Reserve a table ↗</a>
+								</div>
+							</div>
+							<div class="page-back back-cover-back"></div>
+						</div>
+
+					</div><!-- /book -->
+
+					<!-- Click zones: tap left half or right half of book to flip -->
+					<button class="book-zone book-zone-prev" id="zone-prev" aria-label="Previous page">
+						<span class="zone-arrow zone-arrow-left">&#8592;</span>
+					</button>
+					<button class="book-zone book-zone-next" id="zone-next" aria-label="Next page">
+						<span class="zone-arrow zone-arrow-right">&#8594;</span>
+					</button>
+
+				</div><!-- /book-scene -->
+
+				<!-- Close button -->
+				<button class="menu-close-btn" id="menu-close-btn" aria-label="Close menu">
+					<span></span><span></span>
+				</button>
+
+				<!-- Hint label -->
+				<p class="book-hint" id="book-hint">← tap sides to flip &nbsp;·&nbsp; esc to close →</p>
+
+				<!-- Pagination dots -->
+				<div class="book-pagination" id="book-pagination" aria-hidden="true">
+					<span class="dot dot-active" data-page="0"></span>
+					{menuCategories.map((_, i) => (
+						<span class="dot" data-page={i + 1}></span>
+					))}
+					<span class="dot" data-page={menuCategories.length + 1}></span>
+				</div>
+			</div>
+
+			<section class="story-section" id="story">
+				<div class="story-image">
+					<img
+						src="/restaurant-sign.jpg"
+						alt="Sal y Limón restaurant sign"
+					/>
+				</div>
+				<div class="story-copy">
+					<p class="eyebrow"><span></span> De nuestra cocina</p><h2>
+						Come hungry.<br /><em>Leave happy.</em>
+					</h2><p>
+						We cook bright, generous Mexican food made for passing around
+						the table. Fresh salsas, slow-cooked favorites, and a little
+						something sweet at the end.
+					</p><a class="text-link" href="#visit"
+						>Encuéntranos <span aria-hidden="true">↗</span></a>
+				</div>
+			</section>
+
+			<section class="location-section" id="visit" aria-labelledby="location-title">
+				<div class="location-content">
+					<div class="location-info">
+						<p class="eyebrow"><span></span> Cómo encontrarnos</p>
+						<h2 id="location-title">
+							Find your way<br /><em>to our table.</em>
+						</h2>
+						<p class="location-description">
+							We are located in San Narciso Village along the Philip Goldson Highway,
+							just across from Escuela Secundaria Técnica México (ESTM).
+						</p>
+
+						<div class="location-details">
+							<div class="detail-block">
+								<span class="detail-title">Address</span>
+								<p>
+									Philip Goldson Highway, 7th Block<br />
+									San Narciso Village, Corozal District, Belize<br />
+									<em>(In front of Escuela Secundaria Técnica México)</em>
+								</p>
+							</div>
+
+							<div class="detail-block">
+								<span class="detail-title">Navigation Tip</span>
+								<p>
+									Turn into San Narciso Village from Philip Goldson Highway. We are situated at the corner of the 7th block on the paved road facing the high school.
+								</p>
+							</div>
+
+							<div class="detail-block">
+								<span class="detail-title">Hours</span>
+								<p>
+									Tuesday – Sunday: 11:00 AM – 10:00 PM<br />
+									Monday: Closed
+								</p>
+							</div>
+						</div>
+
+						<div class="location-actions">
+							<a
+								class="button button-dark"
+								href="https://www.google.com/maps/dir/?api=1&destination=18.30349,-88.50894"
+								target="_blank"
+								rel="noopener noreferrer"
+								id="get-directions-btn"
+							>
+								Get Directions <span aria-hidden="true">↗</span>
+							</a>
+							<a
+								class="text-link"
+								href="https://www.google.com/maps/search/?api=1&query=18.30349,-88.50894"
+								target="_blank"
+								rel="noopener noreferrer"
+								id="open-maps-btn"
+							>
+								Open in Google Maps <span aria-hidden="true">↗</span>
+							</a>
+						</div>
+					</div>
+
+					<div class="location-map-wrap">
+						<div class="map-card">
+							<iframe
+								id="restaurant-google-map"
+								title="Google Maps Location for Sal y Limón"
+								src="https://maps.google.com/maps?q=18.30349,-88.50894&t=&z=16&ie=UTF8&iwloc=B&output=embed"
+								loading="lazy"
+								allowfullscreen
+								referrerpolicy="no-referrer-when-downgrade"
+							></iframe>
+							<div class="map-overlay-badge">
+								<span class="map-badge-dot"></span>
+								<div>
+									<strong>Sal y Limón</strong>
+									<small>Philip Goldson Hwy, San Narciso</small>
+								</div>
+								<a
+									href="https://www.google.com/maps/dir/?api=1&destination=18.30349,-88.50894"
+									target="_blank"
+									rel="noopener noreferrer"
+									class="map-badge-link"
+									aria-label="Direct navigation to Sal y Limón in Google Maps"
+								>
+									Navigate ↗
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="reserve" id="reserve">
+				<p class="eyebrow"><span></span> Tu mesa te espera</p>
+				<h2>Make a night<br /><em>of it.</em></h2>
+				<a
+					class="button button-light"
+					href="tel:+5016362275"
+					>Book a table <span aria-hidden="true">↗</span></a
+				>
+			</section>
+		</main>
+
+		<footer class="site-footer">
+			<div class="footer-brand">
+				<a class="wordmark" href="/"><img src="/sal-y-limon-logo.jpg" alt="Sal y Limón" /></a><p>
+					Mexican bistro & day club
+				</p>
+			</div>
+			<div>
+				<p class="footer-label">Find us</p><p>
+					Philip Goldson Highway<br />
+					7th block, San Narciso Village<br />
+					In front of Escuela Secundaria Técnica Mexico High School
+				</p>
+				<p class="footer-directions-link">
+					<a
+						href="https://www.google.com/maps/dir/?api=1&destination=18.30349,-88.50894"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Get Google Maps Directions ↗
+					</a>
+				</p>
+			</div>
+			<div>
+				<p class="footer-label">Reservations</p><p>
+					<a href="tel:+5016362275">+501 636-2275</a><br />
+					Reservations recommended
+				</p>
+			</div>
+			<div>
+				<p class="footer-label">Follow along</p><p>
+					<a href="#instagram">Instagram ↗</a><br />
+					<a href="tel:+5016362275">Call to reserve ↗</a>
+				</p>
+			</div>
+		</footer>
+	</body>
+</html>
+
+<style>
+	:global(*) {
+		box-sizing: border-box;
+	}
+	:global(html) {
+		scroll-behavior: smooth;
+	}
+	:global(body) {
+		margin: 0;
+		background: #f4eee4;
+		color: #242220;
+		font-family: "DM Sans", sans-serif;
+	}
+	:global(a) {
+		color: inherit;
+		text-decoration: none;
+	}
+	.site-header {
+		align-items: center;
+		display: flex;
+		justify-content: space-between;
+		max-width: 1320px;
+		margin: 0 auto;
+		padding: 28px 5vw;
+	}
+	.wordmark {
+		display: block;
+		font-family: "Playfair Display", serif;
+		font-size: 2rem;
+		letter-spacing: -0.04em;
+	}
+	.wordmark img {
+		border-radius: 999px;
+		display: block;
+		filter: saturate(0.92) contrast(0.9);
+		height: auto;
+		mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+		mix-blend-mode: multiply;
+		max-width: 150px;
+		object-fit: contain;
+		opacity: 0.86;
+		transition: opacity 0.25s ease, filter 0.25s ease;
+	}
+	.wordmark:hover img {
+		filter: saturate(1) contrast(1);
+		opacity: 1;
+	}
+	.wordmark span {
+		font-family: "DM Mono", monospace;
+		font-size: 0.5rem;
+		letter-spacing: 0;
+		margin-left: 3px;
+		vertical-align: top;
+	}
+	nav {
+		display: flex;
+		gap: 34px;
+		margin-left: 8%;
+	}
+	nav a,
+	.header-booking,
+	.eyebrow,
+	.footer-label {
+		font-family: "DM Mono", monospace;
+		font-size: 0.67rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+	nav a {
+		color: #69645d;
+		transition: color 0.2s ease;
+	}
+	nav a:hover {
+		color: #bc3c2d;
+	}
+	.header-booking {
+		border-bottom: 1px solid #242220;
+		padding-bottom: 5px;
+	}
+	.header-booking span,
+	.button span {
+		margin-left: 9px;
+	}
+	.hero {
+		display: grid;
+		gap: 6vw;
+		grid-template-columns: 0.88fr 1.12fr;
+		margin: 52px auto 0;
+		max-width: 1320px;
+		padding: 0 5vw 105px;
+	}
+	.hero-copy {
+		align-self: center;
+		padding: 30px 0 60px;
+	}
+	.eyebrow {
+		align-items: center;
+		color: #bc3c2d;
+		display: flex;
+		gap: 10px;
+		margin: 0 0 28px;
+	}
+	.eyebrow span {
+		background: #bc3c2d;
+		display: inline-block;
+		height: 7px;
+		width: 7px;
+	}
+	h1,
+	h2 {
+		font-family: "Playfair Display", serif;
+		font-size: clamp(3.6rem, 6vw, 6.9rem);
+		font-weight: 500;
+		letter-spacing: -0.065em;
+		line-height: 0.91;
+		margin: 0;
+	}
+	h1 em,
+	h2 em {
+		color: #bc3c2d;
+		font-weight: 500;
+	}
+	.hero-intro {
+		color: #69645d;
+		font-size: 1.03rem;
+		line-height: 1.65;
+		margin: 35px 0 35px;
+		max-width: 340px;
+	}
+	.hero-actions {
+		align-items: center;
+		display: flex;
+		gap: 26px;
+	}
+	.button {
+		display: inline-flex;
+		align-items: center;
+		font-family: "DM Mono", monospace;
+		font-size: 0.68rem;
+		letter-spacing: 0.05em;
+		padding: 16px 18px;
+		text-transform: uppercase;
+	}
+	.button-dark {
+		background: #242220;
+		color: #f4eee4;
+	}
+	.button-light {
+		background: #f4eee4;
+		color: #242220;
+		margin-top: 34px;
+	}
+	.text-link {
+		border-bottom: 1px solid #aaa197;
+		font-family: "DM Mono", monospace;
+		font-size: 0.68rem;
+		letter-spacing: 0.04em;
+		padding-bottom: 5px;
+		text-transform: uppercase;
+	}
+	.text-link span {
+		color: #bc3c2d;
+		margin-left: 8px;
+	}
+	.hero-image-wrap {
+		min-height: 590px;
+		position: relative;
+	}
+	.hero-image {
+		height: 100%;
+		object-fit: cover;
+		width: 100%;
+	}
+	.image-note {
+		background: #f4eee4;
+		bottom: 0;
+		display: flex;
+		font-family: "DM Mono", monospace;
+		font-size: 0.61rem;
+		gap: 24px;
+		left: 0;
+		line-height: 1.45;
+		padding: 18px 20px;
+		position: absolute;
+		text-transform: uppercase;
+	}
+	.image-note span:first-child {
+		color: #bc3c2d;
+	}
+	.marquee {
+		align-items: center;
+		background: #bc3c2d;
+		color: #f4eee4;
+		display: flex;
+		gap: 35px;
+		justify-content: center;
+		overflow: hidden;
+		padding: 16px;
+		white-space: nowrap;
+	}
+	.marquee span {
+		font-family: "Playfair Display", serif;
+		font-size: 1.08rem;
+		font-style: italic;
+	}
+	.marquee b {
+		font-size: 1rem;
+		font-weight: 400;
+	}
+	/* ─── NAV MENU BUTTON ─── */
+	.nav-menu-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: #69645d;
+		font-family: "DM Mono", monospace;
+		font-size: 0.67rem;
+		letter-spacing: 0.06em;
+		padding: 0;
+		text-transform: uppercase;
+		transition: color 0.2s ease;
+	}
+	.nav-menu-btn:hover { color: #bc3c2d; }
+	.hero-menu-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	/* ─── MENU OVERLAY ─── */
+	.menu-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 900;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 24px;
+	}
+	.menu-overlay[hidden] { display: none !important; }
+	.menu-overlay-bg {
+		position: absolute;
+		inset: 0;
+		background: rgba(18, 16, 14, 0.88);
+		backdrop-filter: blur(10px);
+		opacity: 0;
+		transition: opacity 0.5s ease;
+	}
+	.menu-overlay.is-open .menu-overlay-bg { opacity: 1; }
+
+	/* ─── BOOK SCENE ─── */
+	.book-scene {
+		perspective: 1800px;
+		position: relative;
+		z-index: 1;
+		width: min(520px, 94vw);
+		height: min(680px, 90vh);
+	}
+	.book {
+		width: 100%;
+		height: 100%;
+		position: relative;
+		/* No transform-style: preserve-3d here — that would make pages stack
+		   by 3D Z-depth (= DOM order), ignoring z-index. Each .book-page
+		   creates its own preserve-3d context for its front/back faces. */
+	}
+
+	/* ─── PAGES ─── */
+	.book-page {
+		position: absolute;
+		inset: 0;
+		transform-style: preserve-3d; /* only needed for front/back faces */
+		transform-origin: left center;
+		transition: transform 0.75s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+		backface-visibility: hidden;
+		pointer-events: none;
+		z-index: 1; /* base stacking — cover active gets z-index:10 on top */
+	}
+	.book-page.is-flipped {
+		transform: rotateY(-180deg);
+		pointer-events: none;
+		z-index: 2; /* above unvisited pages so flip animation is visible */
+	}
+	.book-page.is-active {
+		pointer-events: all;
+		z-index: 10; /* always on top */
+	}
+	.page-front,
+	.page-back {
+		position: absolute;
+		inset: 0;
+		backface-visibility: hidden;
+		border-radius: 2px 8px 8px 2px;
+		overflow: hidden;
+	}
+	.page-back {
+		transform: rotateY(180deg);
+		border-radius: 8px 2px 2px 8px;
+	}
+
+	/* ─── COVER ─── */
+	.cover-front {
+		background: linear-gradient(145deg, #2a0a04 0%, #6b1b0f 45%, #bc3c2d 100%);
+		box-shadow: -4px 0 12px rgba(0,0,0,0.4), 4px 0 24px rgba(0,0,0,0.5), inset -3px 0 8px rgba(0,0,0,0.3);
+		position: relative;
+		color: #f4eee4;
+	}
+	.cover-back {
+		background: #1a0a06;
+		box-shadow: inset -6px 0 15px rgba(0,0,0,0.4);
+	}
+	.cover-spine {
+		position: absolute;
+		top: 0; left: 0; bottom: 0;
+		width: 32px;
+		background: linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(255,255,255,0.06) 60%, rgba(0,0,0,0.2) 100%);
+	}
+	.cover-inner {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 24px 44px 28px 60px;
+		text-align: center;
+		overflow-y: auto;
+		gap: 0;
+	}
+	.cover-eyebrow {
+		font-family: "DM Mono", monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: rgba(244, 238, 228, 0.6);
+		margin: 0 0 14px;
+	}
+	.cover-title {
+		font-family: "Playfair Display", serif;
+		font-size: clamp(2.6rem, 8vw, 3.8rem);
+		font-weight: 600;
+		letter-spacing: -0.04em;
+		line-height: 0.92;
+		margin: 0 0 12px;
+		color: #f4eee4;
+	}
+	.cover-title em {
+		color: #f5c97a;
+		font-style: italic;
+	}
+	.cover-subtitle {
+		font-family: "DM Mono", monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.07em;
+		text-transform: uppercase;
+		color: rgba(244, 238, 228, 0.55);
+		margin: 0 0 22px;
+	}
+	.cover-open-btn {
+		background: #f5c97a;
+		border: none;
+		color: #242220;
+		cursor: pointer;
+		font-family: "DM Mono", monospace;
+		font-size: 0.68rem;
+		letter-spacing: 0.07em;
+		padding: 13px 22px;
+		text-transform: uppercase;
+		transition: background 0.2s ease, transform 0.2s ease;
+	}
+	.cover-open-btn:hover { background: #f9d88a; transform: translateY(-2px); }
+	.cover-open-btn span { margin-left: 6px; }
+
+	/* ─── COVER LOGO ─── */
+	.cover-logo-wrap {
+		margin-bottom: 16px;
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+	.cover-logo-wrap::before {
+		content: '';
+		position: absolute;
+		inset: -5px;
+		border-radius: 50%;
+		border: 1.5px solid rgba(245, 201, 122, 0.55);
+		animation: logo-ring-spin 18s linear infinite;
+	}
+	.cover-logo-wrap::after {
+		content: '';
+		position: absolute;
+		inset: -12px;
+		border-radius: 50%;
+		border: 1px dashed rgba(245, 201, 122, 0.22);
+	}
+	@keyframes logo-ring-spin {
+		from { transform: rotate(0deg); }
+		to   { transform: rotate(360deg); }
+	}
+	.cover-logo {
+		width: 90px;
+		height: 90px;
+		border-radius: 50%;
+		object-fit: cover;
+		object-position: center;
+		border: 3px solid rgba(245, 201, 122, 0.7);
+		box-shadow:
+			0 0 0 1px rgba(0,0,0,0.3),
+			0 8px 28px rgba(0,0,0,0.45),
+			0 0 40px rgba(245, 201, 122, 0.15);
+		filter: saturate(1.1) contrast(1.02);
+		transition: transform 0.4s ease, box-shadow 0.4s ease;
+		display: block;
+	}
+	.cover-logo:hover {
+		transform: scale(1.04);
+		box-shadow:
+			0 0 0 1px rgba(0,0,0,0.3),
+			0 12px 36px rgba(0,0,0,0.5),
+			0 0 60px rgba(245, 201, 122, 0.25);
+	}
+	.cover-decoration {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+	.deco-circle {
+		position: absolute;
+		border: 1px solid rgba(245, 201, 122, 0.15);
+		border-radius: 50%;
+	}
+	.deco-1 { width: 340px; height: 340px; top: -80px; right: -80px; }
+	.deco-2 { width: 200px; height: 200px; bottom: -40px; left: 20px; }
+
+	/* ─── INNER PAGES ─── */
+	.page-front:not(.cover-front):not(.back-cover-front) {
+		background: #fdfaf5;
+		box-shadow: inset -3px 0 10px rgba(0,0,0,0.08);
+	}
+	.page-back:not(.cover-back):not(.back-cover-back) {
+		background: #f7f3ec;
+		box-shadow: inset 3px 0 10px rgba(0,0,0,0.06);
+	}
+	.page-inner {
+		padding: 38px 40px 28px 50px;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+	}
+	.page-inner-back {
+		align-items: center;
+		justify-content: center;
+		padding: 40px;
+	}
+	.back-watermark {
+		font-size: 5rem;
+		color: rgba(188, 60, 45, 0.06);
+	}
+	.page-header {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		margin-bottom: 22px;
+		border-bottom: 1.5px solid #e8dfd4;
+		padding-bottom: 16px;
+	}
+	.page-num {
+		font-family: "DM Mono", monospace;
+		font-size: 0.6rem;
+		color: #bc3c2d;
+		letter-spacing: 0.1em;
+	}
+	.page-category {
+		font-family: "DM Mono", monospace;
+		font-size: 0.72rem;
+		font-weight: 400;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: #242220;
+		margin: 0;
+	}
+	.page-items {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		flex: 1;
+	}
+	.page-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 14px;
+		padding: 14px 0;
+		border-bottom: 1px solid #ede6dc;
+	}
+	.item-info strong {
+		display: block;
+		font-family: "Playfair Display", serif;
+		font-size: 1.05rem;
+		font-weight: 500;
+		color: #242220;
+		margin-bottom: 3px;
+	}
+	.item-info p {
+		color: #8b8379;
+		font-family: "DM Mono", monospace;
+		font-size: 0.58rem;
+		line-height: 1.5;
+		margin: 0;
+	}
+	.item-price {
+		font-family: "DM Mono", monospace;
+		font-size: 0.7rem;
+		color: #bc3c2d;
+		white-space: nowrap;
+		padding-top: 2px;
+		flex-shrink: 0;
+	}
+	.page-footer-nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: auto;
+		padding-top: 16px;
+	}
+	.pager {
+		background: none;
+		border: 1px solid #cfc5b9;
+		cursor: pointer;
+		color: #69645d;
+		font-family: "DM Mono", monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.06em;
+		padding: 7px 13px;
+		text-transform: uppercase;
+		transition: all 0.2s ease;
+	}
+	.pager:hover { background: #242220; color: #f4eee4; border-color: #242220; }
+	.pager-next { margin-left: auto; }
+
+	/* ─── BACK COVER ─── */
+	.back-cover-front {
+		background: linear-gradient(145deg, #bc3c2d 0%, #6b1b0f 55%, #2a0a04 100%);
+		color: #f4eee4;
+	}
+	.back-cover-back {
+		background: #1a0a06;
+	}
+	.back-cover-inner {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 40px;
+	}
+	.back-cover-text {
+		font-family: "Playfair Display", serif;
+		font-size: clamp(2rem, 6vw, 2.8rem);
+		font-style: italic;
+		margin: 0 0 8px;
+		color: #f4eee4;
+	}
+	.back-cover-sub {
+		font-family: "DM Mono", monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: rgba(244, 238, 228, 0.55);
+		margin: 0 0 36px;
+	}
+	.back-cover-cta {
+		background: #f5c97a;
+		color: #242220;
+		font-family: "DM Mono", monospace;
+		font-size: 0.68rem;
+		letter-spacing: 0.07em;
+		padding: 13px 22px;
+		text-transform: uppercase;
+		transition: background 0.2s ease;
+		text-decoration: none;
+	}
+	.back-cover-cta:hover { background: #f9d88a; }
+
+	/* ─── CLOSE BUTTON ─── */
+	.menu-close-btn {
+		position: fixed;
+		top: 22px; right: 24px;
+		z-index: 910;
+		width: 46px; height: 46px;
+		background: rgba(244, 238, 228, 0.1);
+		border: 1px solid rgba(244, 238, 228, 0.22);
+		border-radius: 50%;
+		cursor: pointer;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		transition: background 0.2s ease;
+	}
+	.menu-close-btn:hover { background: rgba(244,238,228,0.18); }
+	.menu-close-btn span {
+		display: block;
+		width: 20px; height: 1.5px;
+		background: #f4eee4;
+		transition: transform 0.25s ease;
+	}
+	.menu-close-btn span:first-child { transform: translateY(3.75px) rotate(45deg); }
+	.menu-close-btn span:last-child  { transform: translateY(-3.75px) rotate(-45deg); }
+
+	/* ─── PAGINATION DOTS ─── */
+	.book-pagination {
+		position: fixed;
+		bottom: 28px;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 910;
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+	.dot {
+		width: 7px; height: 7px;
+		border-radius: 50%;
+		background: rgba(244, 238, 228, 0.3);
+		cursor: pointer;
+		transition: background 0.25s ease, transform 0.25s ease;
+	}
+	.dot.dot-active {
+		background: #f5c97a;
+		transform: scale(1.35);
+	}
+
+	/* ─── CLICK ZONES (left / right halves of book) ─── */
+	.book-zone {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 50%;
+		background: none;
+		border: none;
+		cursor: pointer;
+		z-index: 20;
+		display: flex;
+		align-items: center;
+		padding: 0;
+	}
+	.book-zone-prev { left: 0; justify-content: flex-start; }
+	.book-zone-next { right: 0; justify-content: flex-end; }
+	/* Hide zones on cover (page 0) and when at last page — handled via JS class */
+	.book-zone.zone-hidden { opacity: 0; pointer-events: none; }
+
+	.zone-arrow {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		background: rgba(255,255,255,0.08);
+		border: 1px solid rgba(255,255,255,0.14);
+		color: rgba(255, 255, 255, 0.55);
+		font-size: 1.2rem;
+		opacity: 0;
+		transition: opacity 0.25s ease, background 0.2s ease, transform 0.2s ease;
+		margin: 0 16px;
+		backdrop-filter: blur(4px);
+	}
+	.book-zone:hover .zone-arrow {
+		opacity: 1;
+		background: rgba(245, 201, 122, 0.18);
+		border-color: rgba(245, 201, 122, 0.4);
+		color: #f5c97a;
+		transform: scale(1.1);
+	}
+	/* Pulse animation on the arrows to hint interaction on first open */
+	@keyframes zone-pulse {
+		0%   { opacity: 0; }
+		40%  { opacity: 0.7; }
+		70%  { opacity: 0.7; }
+		100% { opacity: 0; }
+	}
+	.book-zone.zone-pulse .zone-arrow {
+		animation: zone-pulse 2.2s ease forwards;
+	}
+
+	/* ─── HINT BAR ─── */
+	.book-hint {
+		position: fixed;
+		bottom: 60px;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 910;
+		color: rgba(244, 238, 228, 0.4);
+		font-family: "DM Mono", monospace;
+		font-size: 0.58rem;
+		letter-spacing: 0.09em;
+		text-transform: uppercase;
+		margin: 0;
+		white-space: nowrap;
+		pointer-events: none;
+		transition: opacity 0.6s ease;
+	}
+	.book-hint.hint-faded { opacity: 0; }
+	.story-section {
+		background: #ded7cc;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+	.story-image {
+		height: 620px;
+	}
+	.story-image img {
+		height: 100%;
+		object-fit: cover;
+		width: 100%;
+	}
+	.story-copy {
+		align-self: center;
+		max-width: 480px;
+		padding: 70px 8vw;
+	}
+	.story-copy h2 {
+		margin-bottom: 30px;
+	}
+	.story-copy > p:not(.eyebrow) {
+		color: #69645d;
+		line-height: 1.7;
+		margin: 0 0 28px;
+		max-width: 330px;
+	}
+	.reserve {
+		background: #242220;
+		color: #f4eee4;
+		padding: 130px 5vw 140px;
+		text-align: center;
+	}
+	.reserve .eyebrow {
+		justify-content: center;
+	}
+	.reserve h2 {
+		font-size: clamp(4rem, 8vw, 8rem);
+	}
+	.location-section {
+		background: #f4eee4;
+		border-top: 1px solid #cfc5b9;
+		margin: 0 auto;
+		padding: 120px 5vw;
+	}
+	.location-content {
+		display: grid;
+		gap: 6vw;
+		grid-template-columns: 1fr 1.15fr;
+		margin: 0 auto;
+		max-width: 1320px;
+	}
+	.location-info {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.location-info h2 {
+		font-size: clamp(3.2rem, 5vw, 5.4rem);
+	}
+	.location-description {
+		color: #69645d;
+		font-size: 1.05rem;
+		line-height: 1.65;
+		margin: 24px 0 32px;
+		max-width: 480px;
+	}
+	.location-details {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		margin-bottom: 36px;
+	}
+	.detail-block {
+		border-left: 2px solid #bc3c2d;
+		padding-left: 16px;
+	}
+	.detail-title {
+		color: #bc3c2d;
+		display: block;
+		font-family: "DM Mono", monospace;
+		font-size: 0.65rem;
+		letter-spacing: 0.08em;
+		margin-bottom: 4px;
+		text-transform: uppercase;
+	}
+	.detail-block p {
+		color: #242220;
+		font-size: 0.88rem;
+		line-height: 1.55;
+		margin: 0;
+	}
+	.detail-block p em {
+		color: #69645d;
+		font-style: italic;
+	}
+	.location-actions {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 20px;
+	}
+	.location-map-wrap {
+		position: relative;
+	}
+	.map-card {
+		background: #242220;
+		border: 1px solid #cfc5b9;
+		box-shadow: 0 16px 36px rgba(0, 0, 0, 0.06);
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		min-height: 480px;
+		overflow: hidden;
+		position: relative;
+	}
+	.map-card iframe {
+		border: none;
+		flex: 1;
+		height: 100%;
+		min-height: 420px;
+		width: 100%;
+	}
+	.map-overlay-badge {
+		align-items: center;
+		background: rgba(36, 34, 32, 0.95);
+		backdrop-filter: blur(8px);
+		bottom: 16px;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+		color: #f4eee4;
+		display: flex;
+		gap: 14px;
+		left: 16px;
+		padding: 12px 18px;
+		position: absolute;
+		right: 16px;
+	}
+	.map-badge-dot {
+		background: #bc3c2d;
+		border-radius: 50%;
+		display: inline-block;
+		flex-shrink: 0;
+		height: 10px;
+		width: 10px;
+	}
+	.map-overlay-badge div {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+	}
+	.map-overlay-badge strong {
+		font-family: "Playfair Display", serif;
+		font-size: 0.95rem;
+		font-weight: 500;
+	}
+	.map-overlay-badge small {
+		color: #aaa197;
+		font-family: "DM Mono", monospace;
+		font-size: 0.6rem;
+		letter-spacing: 0.04em;
+	}
+	.map-badge-link {
+		background: #bc3c2d;
+		color: #f4eee4;
+		font-family: "DM Mono", monospace;
+		font-size: 0.65rem;
+		letter-spacing: 0.05em;
+		padding: 7px 12px;
+		text-transform: uppercase;
+		transition: background 0.2s ease;
+		white-space: nowrap;
+	}
+	.map-badge-link:hover {
+		background: #d44737;
+	}
+	.footer-directions-link {
+		margin-top: 8px !important;
+	}
+	.footer-directions-link a {
+		color: #bc3c2d;
+		font-family: "DM Mono", monospace;
+		font-size: 0.68rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+	footer {
+		display: grid;
+		gap: 30px;
+		grid-template-columns: 2fr 1fr 1fr 1.3fr;
+		margin: 0 auto;
+		max-width: 1320px;
+		padding: 72px 5vw 80px;
+	}
+	footer p {
+		font-size: 0.8rem;
+		line-height: 1.7;
+		margin: 12px 0 0;
+	}
+	footer .footer-brand p,
+	.footer-label {
+		color: #8b8379;
+	}
+	.footer-label {
+		color: #bc3c2d;
+		margin: 0;
+	}
+	footer a:hover {
+		color: #bc3c2d;
+	}
+	@media (max-width: 700px) {
+		.site-header {
+			padding-top: 22px;
+		}
+		nav {
+			display: none;
+		}
+		.header-booking {
+			font-size: 0.58rem;
+		}
+		.hero {
+			display: flex;
+			flex-direction: column;
+			gap: 0;
+			margin-top: 32px;
+			padding-bottom: 55px;
+		}
+		.hero-copy {
+			padding-bottom: 48px;
+		}
+		h1 {
+			font-size: clamp(3.5rem, 17vw, 5.2rem);
+		}
+		.hero-image-wrap {
+			min-height: 420px;
+		}
+		.hero-actions {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 21px;
+		}
+		.marquee {
+			justify-content: flex-start;
+		}
+		.menu-section {
+			display: block;
+			padding: 90px 7vw;
+		}
+		.menu-list {
+			margin-top: 60px;
+		}
+		.full-menu {
+			display: block;
+			padding: 85px 7vw 95px;
+		}
+		.menu-image {
+			margin-top: 35px;
+			max-width: 260px;
+		}
+		.menu-categories {
+			gap: 42px;
+			grid-template-columns: 1fr;
+			margin-top: 60px;
+		}
+		.menu-item {
+			gap: 12px;
+			grid-template-columns: 24px 1fr auto;
+		}
+		.menu-item h3 {
+			font-size: 1.2rem;
+		}
+		.story-section {
+			display: flex;
+			flex-direction: column;
+		}
+		.story-image {
+			height: 360px;
+		}
+		.story-copy {
+			padding: 75px 8vw 90px;
+		}
+		.story-copy h2 {
+			font-size: 3.7rem;
+		}
+		.location-section {
+			padding: 75px 7vw 85px;
+		}
+		.location-content {
+			display: flex;
+			flex-direction: column;
+			gap: 36px;
+		}
+		.map-card {
+			min-height: 360px;
+		}
+		.map-card iframe {
+			min-height: 320px;
+		}
+		.location-actions {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 16px;
+		}
+		.map-overlay-badge {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 10px;
+			left: 12px;
+			right: 12px;
+			bottom: 12px;
+		}
+		.reserve {
+			padding: 90px 7vw 100px;
+		}
+		.reserve h2 {
+			font-size: 4.5rem;
+		}
+		footer {
+			grid-template-columns: 1fr 1fr;
+			padding: 55px 7vw 65px;
+		}
+		.footer-brand {
+			grid-column: span 2;
+			margin-bottom: 15px;
+		}
+	}
+</style>
+
+<script>
+(function () {
+  const pages = Array.from(document.querySelectorAll('.book-page'));
+  const totalPages = pages.length;
+  const overlay = document.getElementById('menu-overlay');
+  const dots = Array.from(document.querySelectorAll('.dot'));
+  let currentPage = 0;
+
+  // ── OPEN / CLOSE ──────────────────────────────────────────
+  function openOverlay() {
+    overlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => overlay.classList.add('is-open'));
+    setActiveDot(0);
+    // Pulse arrows and show hint to teach the user how to flip
+    setTimeout(() => { pulseZones(); showHint(); }, 600);
+  }
+  function closeOverlay() {
+    overlay.classList.remove('is-open');
+    overlay.addEventListener('transitionend', () => {
+      overlay.hidden = true;
+      document.body.style.overflow = '';
+      pages.forEach(p => p.classList.remove('is-flipped', 'is-active'));
+      pages[0].classList.add('is-active');
+      currentPage = 0;
+      setActiveDot(0);
+    }, { once: true });
+  }
+
+  // ── PAGE FLIP ─────────────────────────────────────────────
+  function goTo(target) {
+    if (target < 0 || target >= totalPages) return;
+    if (target > currentPage) {
+      for (let i = currentPage; i < target; i++) pages[i].classList.add('is-flipped');
+    } else {
+      for (let i = currentPage - 1; i >= target; i--) pages[i].classList.remove('is-flipped');
+    }
+    pages.forEach(p => p.classList.remove('is-active'));
+    pages[target].classList.add('is-active');
+    currentPage = target;
+    setActiveDot(target);
+    updateZones();
+  }
+
+  function setActiveDot(idx) {
+    dots.forEach((d, i) => d.classList.toggle('dot-active', i === idx));
+  }
+
+  // ── ZONE VISIBILITY ──────────────────────────────────────
+  const zonePrev = document.getElementById('zone-prev');
+  const zoneNext = document.getElementById('zone-next');
+  const hintEl   = document.getElementById('book-hint');
+  let hintTimer  = null;
+
+  function updateZones() {
+    // On cover (page 0): hide prev zone, show next (so whole book is clickable to open)
+    // On last page: hide next zone
+    zonePrev.classList.toggle('zone-hidden', currentPage === 0);
+    zoneNext.classList.toggle('zone-hidden', currentPage >= totalPages - 1);
+  }
+
+  function pulseZones() {
+    [zonePrev, zoneNext].forEach(z => {
+      z.classList.remove('zone-pulse');
+      void z.offsetWidth; // reflow to restart animation
+      z.classList.add('zone-pulse');
+      z.addEventListener('animationend', () => z.classList.remove('zone-pulse'), { once: true });
+    });
+  }
+
+  function showHint() {
+    hintEl.classList.remove('hint-faded');
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => hintEl.classList.add('hint-faded'), 4000);
+  }
+
+  // ── BIND ──────────────────────────────────────────────────
+  ['open-menu-btn', 'hero-open-menu-btn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', openOverlay);
+  });
+
+  document.getElementById('menu-close-btn').addEventListener('click', closeOverlay);
+  document.getElementById('menu-overlay-bg').addEventListener('click', closeOverlay);
+
+  // Click zones: left half = prev, right half = next
+  zonePrev.addEventListener('click', () => goTo(currentPage - 1));
+  zoneNext.addEventListener('click', () => {
+    // On cover, open-btn already handles flip; zone-next skips to page 1
+    goTo(currentPage + 1);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (overlay.hidden) return;
+    if (e.key === 'Escape') closeOverlay();
+    if (e.key === 'ArrowRight') goTo(currentPage + 1);
+    if (e.key === 'ArrowLeft')  goTo(currentPage - 1);
+  });
+
+  document.getElementById('cover-open-btn').addEventListener('click', () => goTo(1));
+
+  document.querySelectorAll('.pager').forEach(btn => {
+    btn.addEventListener('click', () => {
+      goTo(currentPage + parseInt(btn.dataset.dir, 10));
+    });
+  });
+
+  dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+
+  // Init
+  pages[0].classList.add('is-active');
+  updateZones();
+})();
+</script>
