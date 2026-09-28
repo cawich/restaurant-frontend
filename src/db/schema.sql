@@ -65,10 +65,46 @@ CREATE TABLE IF NOT EXISTS restaurant_settings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 7. POS ORDERS & SALES
+CREATE TABLE IF NOT EXISTS orders (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_number SERIAL,
+    order_type VARCHAR(30) DEFAULT 'pickup' CHECK (order_type IN ('dine_in', 'pickup', 'takeout')),
+    table_number VARCHAR(50) DEFAULT 'Pickup', -- e.g. 'Table 1', 'Table 5', 'Bar', 'Pickup'
+    customer_name VARCHAR(100) NOT NULL,
+    customer_phone VARCHAR(50),
+    pickup_time VARCHAR(50),                   -- e.g. '12:30 PM' or 'In 30 mins'
+    status VARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'completed', 'cancelled')),
+    payment_method VARCHAR(30) DEFAULT 'pay_on_pickup' CHECK (payment_method IN ('cash_bzd', 'cash_usd', 'card', 'pay_on_pickup', 'unpaid')),
+    subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    tax DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    tip DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    amount_paid DECIMAL(10,2) DEFAULT 0.00,
+    change_given DECIMAL(10,2) DEFAULT 0.00,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. ORDER ITEMS (Line items per sale)
+CREATE TABLE IF NOT EXISTS order_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    item_name VARCHAR(150) NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    subtotal DECIMAL(10,2) NOT NULL,
+    notes VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- INDEXES
 CREATE INDEX IF NOT EXISTS idx_menu_items_cat ON menu_items(category_id);
 CREATE INDEX IF NOT EXISTS idx_menu_items_available ON menu_items(is_available);
 CREATE INDEX IF NOT EXISTS idx_media_category ON media(category);
+CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 
 -- =======================================================
 -- INITIAL SEED DATA

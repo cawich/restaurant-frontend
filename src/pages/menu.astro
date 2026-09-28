@@ -20,6 +20,14 @@ const menuCategories = await getMenuCategories();
         </p>
         <div class="menu-hero-actions">
           <a class="button button-dark" href="#menu-grid">Browse Categories <span aria-hidden="true">↓</span></a>
+          <button
+            type="button"
+            class="button menu-hero-pickup"
+            onclick="window.openPickupDrawer ? window.openPickupDrawer() : null"
+            style="background:#bc3c2d; color:#f4eee4; border:none; cursor:pointer;"
+          >
+            <span>🛍️ Order Pickup</span>
+          </button>
           <button class="text-link print-btn" onclick="window.print()" type="button">
             Print Menu <span aria-hidden="true">🖨️</span>
           </button>
@@ -81,7 +89,17 @@ const menuCategories = await getMenuCategories();
                   </div>
                   <p>{item.detail}</p>
                 </div>
-                <span class="cat-item-price">{item.price}</span>
+                <div class="cat-item-actions">
+                  <span class="cat-item-price">{item.price}</span>
+                  <button
+                    type="button"
+                    class="item-pickup-btn"
+                    onclick={`window.addToPickupCart ? window.addToPickupCart('${item.name.replace(/'/g, "\\'")}', '${item.price}') : null`}
+                    title="Add to pickup order"
+                  >
+                    + Order
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -354,6 +372,13 @@ const menuCategories = await getMenuCategories();
     line-height: 1.5;
     margin: 0;
   }
+  .cat-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
   .cat-item-price {
     font-family: "DM Mono", monospace;
     font-size: 0.85rem;
@@ -361,7 +386,25 @@ const menuCategories = await getMenuCategories();
     color: #bc3c2d;
     white-space: nowrap;
     padding-top: 2px;
-    flex-shrink: 0;
+  }
+  .item-pickup-btn {
+    background: #242220;
+    color: #f4eee4;
+    border: none;
+    border-radius: 4px;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    padding: 5px 10px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+  }
+  .item-pickup-btn:hover {
+    background: #bc3c2d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(188, 60, 45, 0.35);
   }
 
   /* ── MENU FOOTNOTE ── */

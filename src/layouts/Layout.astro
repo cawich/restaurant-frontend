@@ -1,4 +1,6 @@
 ---
+import PickupDrawer from '../components/PickupDrawer.astro';
+
 interface Props {
   title: string;
   description?: string;
@@ -56,6 +58,14 @@ const {
         <a href="/visit" class={activePage === 'visit' ? 'active' : ''}>Visit</a>
       </nav>
       <div class="header-actions">
+        <button
+          type="button"
+          class="header-pickup-btn"
+          onclick="window.openPickupDrawer ? window.openPickupDrawer() : null"
+          aria-label="Order pickup online"
+        >
+          <span>🛍️ Pickup</span>
+        </button>
         <a
           class="header-wa-btn"
           href="https://wa.me/5016362275?text=Hello%20Sal%20y%20Lim%C3%B3n,%20I%20would%20like%20to%20reserve%20a%20table"
@@ -168,6 +178,9 @@ const {
       </svg>
       <span class="floating-tooltip">Reserve on WhatsApp</span>
     </a>
+
+    <!-- ── PICKUP ORDER MODAL & DRAWER ── -->
+    <PickupDrawer />
   </body>
 </html>
 
@@ -257,7 +270,28 @@ const {
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 14px;
+  }
+  .header-pickup-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #bc3c2d;
+    color: #f4eee4;
+    border: none;
+    font-family: "DM Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(188, 60, 45, 0.3);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .header-pickup-btn:hover {
+    background: #d44737;
+    transform: translateY(-1px);
   }
   .header-wa-btn {
     display: inline-flex;

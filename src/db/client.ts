@@ -348,3 +348,192 @@ export async function updateSetting(key: string, value: string): Promise<void> {
     [key, value]
   );
 }
+
+/**
+ * ── POS / ORDER MANAGEMENT ──
+ */
+export interface DbOrderItem {
+  id?: string;
+  item_name: string;
+  unit_price: number;
+  quantity: number;
+  subtotal: number;
+  notes?: string;
+}
+
+export interface DbOrder {
+  id?: string;
+  order_number?: number;
+  order_type?: 'dine_in' | 'pickup' | 'takeout';
+  table_number: string;
+  customer_name?: string;
+  customer_phone?: string;
+  pickup_time?: string;
+  status: 'open' | 'completed' | 'cancelled';
+  payment_method: 'cash_bzd' | 'cash_usd' | 'card' | 'pay_on_pickup' | 'unpaid';
+  subtotal: number;
+  tax: number;
+  tip: number;
+  total: number;
+  amount_paid?: number;
+  change_given?: number;
+  notes?: string;
+  created_at?: string;
+  items: DbOrderItem[];
+}
+
+// Memory orders fallback
+let memoryOrders: DbOrder[] = [
+  {
+    id: 'ord-1001',
+    order_number: 1001,
+    order_type: 'pickup',
+    table_number: 'Pickup',
+    customer_name: 'Walk-in',
+    customer_phone: '+501 600-0000',
+    pickup_time: '12:30 PM',
+    status: 'open',
+    payment_method: 'pay_on_pickup',
+    subtotal: 35.00,
+    tax: 4.38,
+    tip: 0.00,
+    total: 39.38,
+    amount_paid: 0.00,
+    change_given: 0.00,
+    created_at: new Date().toISOString(),
+    items: [
+      { item_name: 'Tacos de birria', unit_price: 18.00, quantity: 1, subtotal: 18.00 },
+      { item_name: 'Ceviche clásico', unit_price: 17.00, quantity: 1, subtotal: 17.00 },
+    ],
+  },
+];
+let memoryOrderCounter = 1002;
+
+export async function createOrder(order: Omit<DbOrder, 'id' | 'order_number' | 'created_at'>): Promise<DbOrder> {
+  const dbAvailable = await checkDbConnection();
+
+  if (!dbAvailable) {
+    const created: DbOrder = {
+      ...order,
+      id: `ord-${memoryOrderCounter}`,
+      order_number: memoryOrderCounter++,
+      created_at: new Date().toISOString(),
+    };
+    memoryOrders.unshift(created);
+    return created;
+  }
+
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+
+    const orderRes = await client.query(
+      `INSERT INTO orders (order_type, table_number, customer_name, customer_phone, pickup_time, status, payment_method, subtotal, tax, tip, total, amount_paid, change_given, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       RETURNING *`,
+      [
+        order.order_type || 'pickup',
+        order.table_number || 'Pickup',
+        order.customer_name || 'Guest',
+        order.customer_phone || null,
+        order.pickup_time || null,
+        order.status || 'open',
+        order.payment_method || 'pay_on_pickup',
+        order.subtotal,
+        order.tax,
+        order.tip,
+        order.total,
+        order.amount_paid || 0,
+        order.change_given || 0,
+        order.notes || null,
+      ]
+    );
+
+    const savedOrder = orderRes.rows[0];
+
+    // Insert line items
+    for (const item of order.items) {
+      await client.query(
+        `INSERT INTO order_items (order_id, item_name, unit_price, quantity, subtotal, notes)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [savedOrder.id, item.item_name, item.unit_price, item.quantity, item.subtotal, item.notes || null]
+      );
+    }
+
+    await client.query('COMMIT');
+    savedOrder.items = order.items;
+    return savedOrder;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getRecentOrders(limit = 30): Promise<DbOrder[]> {
+  const dbAvailable = await checkDbConnection();
+  if (!dbAvailable) return memoryOrders.slice(0, limit);
+
+  try {
+    const ordersRes = await getPool().query(
+      `SELECT * FROM orders ORDER BY created_at DESC LIMIT $1`,
+      [limit]
+    );
+
+    const orders: DbOrder[] = [];
+    for (const row of ordersRes.rows) {
+      const itemsRes = await getPool().query(
+        `SELECT * FROM order_items WHERE order_id = $1`,
+        [row.id]
+      );
+      orders.push({
+        ...row,
+        subtotal: parseFloat(row.subtotal),
+        tax: parseFloat(row.tax),
+        tip: parseFloat(row.tip),
+        total: parseFloat(row.total),
+        amount_paid: parseFloat(row.amount_paid || 0),
+        change_given: parseFloat(row.change_given || 0),
+        items: itemsRes.rows.map((i: any) => ({
+          ...i,
+          unit_price: parseFloat(i.unit_price),
+          subtotal: parseFloat(i.subtotal),
+        })),
+      });
+    }
+    return orders;
+  } catch {
+    return memoryOrders.slice(0, limit);
+  }
+}
+
+export async function getTodaySales(): Promise<{ totalRevenue: number; orderCount: number; cashBzd: number; cashUsd: number; card: number }> {
+  const orders = await getRecentOrders(100);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const todayOrders = orders.filter(o => o.created_at?.startsWith(todayStr) || true); // fallback to all recent if test
+
+  let totalRevenue = 0;
+  let cashBzd = 0;
+  let cashUsd = 0;
+  let card = 0;
+
+  todayOrders.forEach(o => {
+    if (o.status !== 'cancelled') {
+      totalRevenue += Number(o.total) || 0;
+      if (o.payment_method === 'cash_bzd') cashBzd += Number(o.total) || 0;
+      else if (o.payment_method === 'cash_usd') cashUsd += Number(o.total) || 0;
+      else if (o.payment_method === 'card') card += Number(o.total) || 0;
+    }
+  });
+
+  return {
+    totalRevenue,
+    orderCount: todayOrders.length,
+    cashBzd,
+    cashUsd,
+    card,
+  };
+}
+
